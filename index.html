@@ -6,6 +6,9 @@
 <title>Threshold — Door & Alarm Reminder</title>
 <meta name="description" content="A location-aware task, door reminder, and functional alarm manager." />
 <meta name="theme-color" content="#0b0e14" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<link rel="manifest" href="manifest.json" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -440,11 +443,22 @@ body.leaving-mode .loc-icon { background: rgba(224,164,88,0.16); color: var(--am
         pingTime: '08:15',
         lastActiveDate: todayStr(),
         lastPingFiredDate: null,
+        soundTone: 'synth-bell', // 'synth-bell' | 'synth-radar' | 'synth-soft' | 'custom'
+        customSoundData: null,   // Base64 Data URL for user's phone sound file
+        customSoundName: '',     // Display filename
       },
     };
   }
 
   let state = load();
+  let deferredInstallPrompt = null;
+  let customAudioElement = null;
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    if (currentRoute() === '/settings') render();
+  });
 
   function load() {
     try {
@@ -486,27 +500,93 @@ body.leaving-mode .loc-icon { background: rgba(224,164,88,0.16); color: var(--am
   let audioCtx = null;
   let activeAlarmInterval = null;
 
-  function playAlarmSound() {
+  function playSynthSound(type = 'synth-bell') {
     try {
       if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       if (audioCtx.state === 'suspended') audioCtx.resume();
 
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(880, audioCtx.currentTime); // A5 note
-      osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.3);
 
-      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+      if (type === 'synth-radar') {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(1200, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.25);
+        gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+      } else if (type === 'synth-soft') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+        osc.frequency.exponentialRampToValueAtTime(659.25, audioCtx.currentTime + 0.4); // E5
+        gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+      } else { // default synth-bell
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
+        osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.3);
+        gain.gain.setValueAtTime(0.35, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+      }
 
       osc.connect(gain);
       gain.connect(audioCtx.destination);
-
       osc.start();
-      osc.stop(audioCtx.currentTime + 0.35);
+      osc.stop(audioCtx.currentTime + 0.4);
     } catch (e) {
       console.warn('Audio play error:', e);
+    }
+  }
+
+  function startAlarmRingtone() {
+    stopAlarmRingtone();
+    const soundTone = state.settings.soundTone || 'synth-bell';
+
+    if (soundTone === 'custom' && state.settings.customSoundData) {
+      try {
+        customAudioElement = new Audio(state.settings.customSoundData);
+        customAudioElement.loop = true;
+        customAudioElement.play().catch((err) => {
+          console.warn('Custom audio playback issue, fallback to synth:', err);
+          playSynthSound('synth-bell');
+          activeAlarmInterval = setInterval(() => playSynthSound('synth-bell'), 800);
+        });
+      } catch (err) {
+        playSynthSound('synth-bell');
+        activeAlarmInterval = setInterval(() => playSynthSound('synth-bell'), 800);
+      }
+    } else {
+      playSynthSound(soundTone);
+      activeAlarmInterval = setInterval(() => playSynthSound(soundTone), 800);
+    }
+  }
+
+  function stopAlarmRingtone() {
+    if (activeAlarmInterval) {
+      clearInterval(activeAlarmInterval);
+      activeAlarmInterval = null;
+    }
+    if (customAudioElement) {
+      try {
+        customAudioElement.pause();
+        customAudioElement.currentTime = 0;
+      } catch (e) { /* ignore */ }
+      customAudioElement = null;
+    }
+  }
+
+  function previewAlarmSound() {
+    stopAlarmRingtone();
+    const soundTone = state.settings.soundTone || 'synth-bell';
+
+    if (soundTone === 'custom' && state.settings.customSoundData) {
+      try {
+        const audio = new Audio(state.settings.customSoundData);
+        audio.play().catch(() => toast('Could not play audio preview. Check file format.'));
+      } catch (e) {
+        toast('Error playing custom file.');
+      }
+    } else {
+      playSynthSound(soundTone);
     }
   }
 
@@ -1289,14 +1369,52 @@ body.leaving-mode .loc-icon { background: rgba(224,164,88,0.16); color: var(--am
 
   function renderSettings(app) {
     const s = state.settings;
+    const toneVal = s.soundTone || 'synth-bell';
+
     app.innerHTML = `
       <div class="eyebrow">Preferences</div>
-      <h1 class="page-title">Settings & Permissions</h1>
+      <h1 class="page-title">Settings & Sound</h1>
+
+      ${deferredInstallPrompt ? `
+      <div class="section-card" style="border-color: var(--accent); background: rgba(139,162,212,0.08);">
+        <h2 class="section-title">Install PWA Application</h2>
+        <p class="section-sub">Add Threshold directly to your phone's home screen for full app performance and offline alarm support.</p>
+        <button class="btn btn-accent btn-block" id="btn-install-pwa">⚡ Install Threshold App</button>
+      </div>` : ''}
 
       <div class="section-card">
         <h2 class="section-title">Profile</h2>
         <div class="field-label">Your Name</div>
         <input class="text-input" id="s-name" placeholder="e.g. Alex" value="${esc(s.name)}" />
+      </div>
+
+      <div class="section-card">
+        <h2 class="section-title">Alarm Sound & Audio Tone</h2>
+        <p class="section-sub">Choose your alarm sound or pick a custom MP3/WAV tone from your phone storage.</p>
+
+        <div class="sheet-row">
+          <div class="field-label">Alarm Sound Tone</div>
+          <select class="select-input" id="s-sound-tone">
+            <option value="synth-bell" ${toneVal === 'synth-bell' ? 'selected' : ''}>Classic Synth Bell</option>
+            <option value="synth-radar" ${toneVal === 'synth-radar' ? 'selected' : ''}>Radar Pulse</option>
+            <option value="synth-soft" ${toneVal === 'synth-soft' ? 'selected' : ''}>Gentle Chime</option>
+            <option value="custom" ${toneVal === 'custom' ? 'selected' : ''}>📁 Custom File from Phone Storage</option>
+          </select>
+        </div>
+
+        <div id="custom-sound-box" style="margin-top: 14px; ${toneVal === 'custom' ? 'display:block;' : 'display:none;'} background: var(--bg-elev); border: 1px dashed var(--border); border-radius: var(--radius-sm); padding: 14px;">
+          <div class="field-label" style="margin-bottom: 6px;">Select Audio File</div>
+          <p style="font-size: 12.5px; color: var(--ink-faint); margin: 0 0 10px;">Select an MP3, WAV, OGG, or M4A file from your phone.</p>
+          <input type="file" id="s-custom-file-input" accept="audio/*" style="display:none;" />
+          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <button class="btn btn-ghost btn-sm" id="s-btn-choose-file" type="button">📂 Choose Audio File</button>
+            <span style="font-size: 13px; color: var(--ink-dim);" id="s-custom-filename">${s.customSoundName ? esc(s.customSoundName) : 'No file selected'}</span>
+          </div>
+        </div>
+
+        <div style="margin-top: 16px;">
+          <button class="btn btn-ghost btn-sm" id="s-test-sound-btn" type="button">▶ Test Selected Sound</button>
+        </div>
       </div>
 
       <div class="section-card">
@@ -1323,12 +1441,73 @@ body.leaving-mode .loc-icon { background: rgba(224,164,88,0.16); color: var(--am
       <div class="section-card">
         <h2 class="section-title">Actions</h2>
         <div style="display: flex; flex-direction: column; gap: 10px;">
-          <button class="btn btn-ghost btn-block" id="s-test-alarm">Test Alarm & Audio Chime</button>
+          <button class="btn btn-ghost btn-block" id="s-test-alarm">Test Alarm Screen & Audio</button>
           <button class="btn btn-ghost btn-block" id="s-sample-day">Load Sample Day Data</button>
           <button class="btn btn-danger btn-block" id="s-clear">Clear All App Data</button>
         </div>
       </div>
     `;
+
+    if (deferredInstallPrompt) {
+      const installBtn = app.querySelector('#btn-install-pwa');
+      if (installBtn) {
+        installBtn.addEventListener('click', async () => {
+          deferredInstallPrompt.prompt();
+          const { outcome } = await deferredInstallPrompt.userChoice;
+          if (outcome === 'accepted') {
+            toast('Threshold installed to home screen!');
+          }
+          deferredInstallPrompt = null;
+          render();
+        });
+      }
+    }
+
+    const soundSelect = app.querySelector('#s-sound-tone');
+    const customBox = app.querySelector('#custom-sound-box');
+    const chooseFileBtn = app.querySelector('#s-btn-choose-file');
+    const fileInput = app.querySelector('#s-custom-file-input');
+    const fileNameSpan = app.querySelector('#s-custom-filename');
+    const testSoundBtn = app.querySelector('#s-test-sound-btn');
+
+    soundSelect.addEventListener('change', (e) => {
+      state.settings.soundTone = e.target.value;
+      customBox.style.display = (e.target.value === 'custom') ? 'block' : 'none';
+      save();
+    });
+
+    chooseFileBtn.addEventListener('click', () => fileInput.click());
+
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      if (file.size > 8 * 1024 * 1024) { // Max ~8MB check for localStorage capacity
+        toast('File is too large. Please select an audio file under 8MB.');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        state.settings.customSoundData = evt.target.result;
+        state.settings.customSoundName = file.name;
+        state.settings.soundTone = 'custom';
+        soundSelect.value = 'custom';
+        customBox.style.display = 'block';
+        fileNameSpan.textContent = file.name;
+        save();
+        toast(`Loaded tone: ${file.name}`);
+        previewAlarmSound();
+      };
+      reader.onerror = function() {
+        toast('Could not read audio file.');
+      };
+      reader.readAsDataURL(file);
+    });
+
+    testSoundBtn.addEventListener('click', () => {
+      previewAlarmSound();
+    });
 
     app.querySelector('#s-name').addEventListener('change', (e) => { state.settings.name = e.target.value.trim(); save(); });
     app.querySelector('#s-loc').addEventListener('click', async () => {
