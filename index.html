@@ -11,348 +11,330 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
+/* ---------- Color Palette & Tokens (Brown, Sage Green, Peach/White) ---------- */
 :root {
-  /* Earthy Color Palette: Brown, Sage Green, Warm Peach/White */
-  --bg: #1a1512;               /* Deep warm dark espresso brown */
-  --bg-elev: #241e1a;          /* Slightly elevated warm dark brown */
-  --card: #2c2420;             /* Card background warm brown */
-  --card-2: #352c27;           /* Sub-card background */
-  --border: rgba(232, 168, 140, 0.18); /* Soft peach border line */
-  --border-soft: rgba(232, 168, 140, 0.09);
+  --bg: #1c1714;
+  --bg-elev: #241e1a;
+  --card: #2a231f;
+  --card-2: #332b26;
+  --border: rgba(232, 214, 196, 0.12);
+  --border-soft: rgba(232, 214, 196, 0.07);
   
-  --ink: #fbf6f0;              /* Warm off-white / peach-white text */
-  --ink-dim: #d8c5b8;          /* Soft peach-beige secondary text */
-  --ink-faint: #9c897c;        /* Warm brownish muted text */
+  --ink: #f9f5f0;
+  --ink-dim: #c5b9ac;
+  --ink-faint: #8a7c6f;
   
-  --accent: #82a382;           /* Organic sage green */
-  --accent-ink: #0f1c10;       /* Dark green contrast text */
-  --accent-glow: rgba(130, 163, 130, 0.2);
+  --sage: #8b9a7d;
+  --sage-dark: #6e7d60;
+  --sage-ink: #141a10;
+  --sage-glow: rgba(139, 154, 125, 0.18);
   
-  --green-bright: #689f71;     /* Primary action green */
-  --peach: #e2a082;            /* Warm earthy peach highlight */
-  --peach-ink: #2b140b;        /* Contrast on peach */
-  --peach-glow: rgba(226, 160, 130, 0.18);
+  --peach: #e3a982;
+  --peach-ink: #1f140d;
+  --peach-glow: rgba(227, 169, 130, 0.15);
   
-  --brown-warm: #a86246;       /* Terracotta brown */
-  --danger: #e07a68;           /* Muted coral red */
+  --amber: #d99355;
+  --amber-ink: #1a1109;
   
-  --radius-xl: 24px;
-  --radius-lg: 18px;
+  --danger: #d9786c;
+  
+  --radius-lg: 22px;
   --radius-md: 14px;
   --radius-sm: 10px;
   
   --serif: 'Fraunces', Georgia, serif;
-  --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --shadow-lg: 0 12px 36px rgba(0,0,0,0.45);
-  --shadow-sm: 0 4px 12px rgba(0,0,0,0.25);
+  --sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   
+  --shadow: 0 12px 36px rgba(0,0,0,0.45);
   --dur: 220ms;
   --ease: cubic-bezier(.2, .8, .2, 1);
-  --sab: env(safe-area-inset-bottom, 0px);
 }
 
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html, body { height: 100%; margin: 0; padding: 0; background-color: var(--bg); color: var(--ink); font-family: var(--sans); }
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; padding: 0; }
 
 body {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  min-height: -webkit-fill-available;
-  background: radial-gradient(1000px 500px at 50% -10%, #2e231d 0%, var(--bg) 60%);
+  background: radial-gradient(1200px 700px at 50% -10%, #2e2520 0%, var(--bg) 60%);
   color: var(--ink);
+  font-family: var(--sans);
   -webkit-font-smoothing: antialiased;
   transition: background var(--dur) var(--ease);
   overflow-x: hidden;
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 body.leaving-mode {
-  background: radial-gradient(1000px 500px at 50% -10%, #3e2116 0%, #170f0b 60%);
+  background: radial-gradient(1200px 700px at 50% -10%, #3a2214 0%, #1c120c 60%);
 }
 
 a { color: inherit; text-decoration: none; }
-button { font-family: inherit; border: none; outline: none; background: none; }
+button, input, select { font-family: inherit; }
+::selection { background: var(--sage); color: var(--sage-ink); }
 
+/* ---------- Top Navigation (Desktop & Mobile Header) ---------- */
 .topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
-  max-width: 800px;
+  padding: 18px clamp(16px, 4vw, 40px);
+  max-width: 1100px;
   margin: 0 auto;
-  width: 100%;
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  background: rgba(26, 21, 18, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border-soft);
 }
 
 .brand {
   display: flex;
   align-items: center;
   gap: 10px;
-}
-
-.brand-mark {
-  width: 22px;
-  height: 22px;
   color: var(--peach);
 }
+.brand-mark { width: 22px; height: 22px; }
+.brand-name { font-family: var(--serif); font-size: 22px; font-weight: 600; letter-spacing: 0.01em; color: var(--ink); }
 
-.brand-name {
-  font-family: var(--serif);
-  font-size: 22px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  color: var(--ink);
-}
-
-.today-mini-clock {
-  font-family: var(--serif);
-  font-size: 15px;
-  color: var(--ink-dim);
-  background: var(--card);
-  padding: 4px 10px;
-  border-radius: 999px;
+/* Top tabs for desktop */
+.tabs-desktop {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--border-soft);
+  border-radius: 999px;
+  padding: 4px;
+}
+.tabs-desktop a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--ink-dim);
+  padding: 8px 16px;
+  border-radius: 999px;
+  transition: all var(--dur) var(--ease);
+}
+.tabs-desktop a:hover { color: var(--ink); }
+.tabs-desktop a.active { background: var(--sage); color: var(--sage-ink); font-weight: 600; }
+body.leaving-mode .tabs-desktop a.active { background: var(--peach); color: var(--peach-ink); }
+.tab-ico { width: 16px; height: 16px; flex-shrink: 0; }
+
+/* Bottom navigation for mobile */
+.bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: rgba(36, 30, 26, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--border-soft);
+  padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
+  z-index: 40;
+  justify-content: space-around;
 }
 
+.bottom-nav a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-faint);
+  padding: 6px 12px;
+  border-radius: 12px;
+  transition: color var(--dur) var(--ease);
+}
+.bottom-nav a.active { color: var(--sage); }
+body.leaving-mode .bottom-nav a.active { color: var(--peach); }
+.bottom-nav .tab-ico { width: 20px; height: 20px; }
+
+@media (max-width: 720px) {
+  .tabs-desktop { display: none; }
+  .bottom-nav { display: flex; }
+  .app { padding-bottom: 110px !important; }
+}
+
+/* ---------- App Layout ---------- */
 .app {
-  flex: 1;
-  max-width: 800px;
+  max-width: 1100px;
   margin: 0 auto;
-  width: 100%;
-  padding: 16px 16px calc(100px + var(--sab));
+  padding: 8px clamp(16px, 4vw, 40px) 100px;
+  min-height: 65vh;
 }
 
 .eyebrow {
-  font-size: 11px;
-  letter-spacing: .15em;
+  font-size: 11.5px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--peach);
+  color: var(--sage);
   font-weight: 700;
-  margin: 12px 0 4px;
+  margin: 16px 0 6px;
 }
+body.leaving-mode .eyebrow { color: var(--peach); }
 
 .page-title {
   font-family: var(--serif);
-  font-weight: 600;
-  font-size: clamp(26px, 5vw, 34px);
-  margin: 0 0 6px;
-  color: var(--ink);
+  font-weight: 500;
+  font-size: clamp(28px, 4vw, 38px);
+  margin: 0 0 8px;
 }
-
 .page-sub {
   color: var(--ink-dim);
-  font-size: 14px;
+  font-size: 14.5px;
+  max-width: 620px;
   line-height: 1.5;
-  margin: 0 0 20px;
+  margin: 0 0 24px;
 }
 
+/* ---------- Today View ---------- */
 .today-head {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  margin: 8px 0 16px;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin: 12px 0 20px;
 }
-
 .today-date {
-  font-size: 11.5px;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  color: var(--peach);
-  font-weight: 700;
-}
-
-.today-greet {
-  font-family: var(--serif);
-  font-weight: 600;
-  font-size: clamp(24px, 5vw, 32px);
-  margin-top: 2px;
-}
-
-.loc-card {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 18px;
-  margin-bottom: 20px;
-  box-shadow: var(--shadow-sm);
-  transition: all var(--dur) var(--ease);
-}
-
-body.leaving-mode .loc-card {
-  background: linear-gradient(135deg, var(--peach-glow), var(--card) 80%);
-  border-color: rgba(226, 160, 130, 0.4);
-}
-
-.loc-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.loc-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.loc-icon {
-  width: 42px;
-  height: 42px;
-  border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(130, 163, 130, 0.15);
-  color: var(--accent);
-  flex-shrink: 0;
-}
-
-body.leaving-mode .loc-icon {
-  background: rgba(226, 160, 130, 0.2);
-  color: var(--peach);
-}
-
-.loc-icon svg { width: 22px; height: 22px; }
-
-.loc-label {
-  font-size: 11px;
-  letter-spacing: .12em;
+  font-size: 12px;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--ink-faint);
   font-weight: 700;
 }
-
-.loc-name {
+.today-greet {
   font-family: var(--serif);
-  font-size: 20px;
-  font-weight: 600;
-  margin-top: 1px;
+  font-weight: 500;
+  font-size: clamp(28px, 4.5vw, 38px);
+  margin-top: 4px;
 }
-
-.loc-note {
+.today-clock {
+  font-family: var(--serif);
+  font-size: 26px;
   color: var(--ink-dim);
-  font-size: 13.5px;
-  border-top: 1px dashed var(--border-soft);
-  padding-top: 12px;
+  font-variant-numeric: tabular-nums;
 }
 
-.cat-tabs {
-  display: flex;
-  background: var(--bg-elev);
-  border: 1px solid var(--border-soft);
-  padding: 4px;
-  border-radius: var(--radius-md);
-  margin-bottom: 16px;
-  gap: 4px;
-}
-
-.cat-tab {
-  flex: 1;
-  padding: 10px 12px;
-  text-align: center;
-  border-radius: var(--radius-sm);
-  font-size: 13.5px;
-  font-weight: 600;
-  color: var(--ink-dim);
-  cursor: pointer;
+/* ---------- Location Card ---------- */
+.loc-card {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px 22px;
+  margin-bottom: 22px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.2);
   transition: all var(--dur) var(--ease);
 }
-
-.cat-tab.active {
-  background: var(--accent);
-  color: var(--accent-ink);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+body.leaving-mode .loc-card {
+  background: linear-gradient(180deg, var(--peach-glow), transparent 70%), var(--card);
+  border-color: rgba(227, 169, 130, 0.35);
 }
 
-body.leaving-mode .cat-tab.active {
-  background: var(--peach);
-  color: var(--peach-ink);
+.loc-left { display: flex; align-items: center; gap: 14px; }
+.loc-icon {
+  width: 46px; height: 46px;
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--sage-glow);
+  color: var(--sage);
+  flex-shrink: 0;
 }
+body.leaving-mode .loc-icon { background: var(--peach-glow); color: var(--peach); }
+.loc-icon svg { width: 22px; height: 22px; }
 
-.cat-badge {
-  background: rgba(0,0,0,0.15);
-  padding: 2px 7px;
-  border-radius: 999px;
+.loc-label {
   font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  font-weight: 700;
+}
+.loc-name { font-family: var(--serif); font-size: 22px; margin-top: 2px; }
+.loc-note { width: 100%; color: var(--ink-faint); font-size: 13.5px; margin-top: 2px; }
+
+/* ---------- Buttons ---------- */
+.btn {
+  border: none;
+  cursor: pointer;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 11px 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: transform var(--dur) var(--ease), background var(--dur) var(--ease), opacity var(--dur) var(--ease);
+}
+.btn:active { transform: scale(0.96); }
+
+.btn-primary { background: var(--sage); color: var(--sage-ink); }
+.btn-primary:hover { opacity: 0.92; }
+body.leaving-mode .btn-primary { background: var(--peach); color: var(--peach-ink); }
+
+.btn-light { background: var(--ink); color: #1c1714; }
+.btn-light:hover { opacity: 0.92; }
+
+.btn-ghost { background: transparent; color: var(--ink-dim); border: 1px solid var(--border); }
+.btn-ghost:hover { color: var(--ink); border-color: var(--sage); }
+
+.btn-danger { background: transparent; color: var(--danger); border: 1px solid rgba(217,120,108,0.35); }
+.btn-danger:hover { background: rgba(217,120,108,0.1); }
+
+.btn-sm { padding: 8px 14px; font-size: 13px; }
+.btn-block { width: 100%; }
+
+.proximity-banner {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  background: var(--sage-glow); border: 1px dashed var(--sage); border-radius: var(--radius-md);
+  padding: 12px 16px; margin-bottom: 18px; font-size: 13.5px; color: var(--ink);
 }
 
+/* ---------- Columns Layout (Do / Take / Give) ---------- */
 .columns {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
 }
-
-@media (min-width: 680px) {
-  .cat-tabs { display: none; }
-  .columns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-  .col.mobile-hidden { display: flex !important; }
+@media (max-width: 900px) {
+  .columns { grid-template-columns: 1fr; }
 }
 
 .col {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 16px;
+  padding: 18px;
   display: flex;
   flex-direction: column;
-  min-height: 180px;
+  min-height: 200px;
+  transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+.col.col-hidden {
+  display: none !important;
 }
 
-.col.mobile-hidden { display: none; }
+.col-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
+.col-title { font-family: var(--serif); font-size: 21px; font-weight: 600; }
+.col-count { font-size: 12px; color: var(--ink-faint); font-weight: 600; }
+.col-empty { color: var(--ink-faint); font-size: 13.5px; padding: 12px 2px 18px; }
+.col-list { display: flex; flex-direction: column; gap: 8px; flex: 1; }
 
-.col-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  margin-bottom: 12px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--border-soft);
+.add-link {
+  display: flex; align-items: center; gap: 7px; color: var(--sage); font-size: 13.5px; font-weight: 600;
+  background: none; border: none; cursor: pointer; padding: 8px 2px; margin-top: 10px; align-self: flex-start;
 }
+body.leaving-mode .add-link { color: var(--peach); }
+.add-link:hover { opacity: 0.8; }
+.add-link svg { width: 15px; height: 15px; }
 
-.col-title {
-  font-family: var(--serif);
-  font-size: 19px;
-  font-weight: 600;
-  color: var(--ink);
-}
-
-.col-count {
-  font-size: 12px;
-  color: var(--peach);
-  font-weight: 600;
-}
-
-.col-empty {
-  color: var(--ink-faint);
-  font-size: 13.5px;
-  padding: 18px 4px;
-  text-align: center;
-  font-style: italic;
-}
-
-.col-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  flex: 1;
-}
-
+/* ---------- Item Cards ---------- */
 .item {
   display: flex;
   align-items: flex-start;
@@ -363,376 +345,207 @@ body.leaving-mode .cat-tab.active {
   padding: 12px 14px;
   transition: transform var(--dur) var(--ease), opacity var(--dur) var(--ease);
 }
-
-.item.completing {
-  transform: scale(0.95);
-  opacity: 0.1;
-}
+.item.completing { transform: scale(0.96); opacity: 0; }
 
 .item-check {
-  width: 24px;
-  height: 24px;
+  width: 22px; height: 22px;
   border-radius: 50%;
-  border: 2px solid var(--ink-faint);
+  border: 1.8px solid var(--ink-faint);
   background: transparent;
   cursor: pointer;
   flex-shrink: 0;
   margin-top: 1px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: transparent;
+  display: flex; align-items: center; justify-content: center;
   transition: all var(--dur) var(--ease);
+  color: var(--sage-ink);
 }
-
-.item-check:active, .item-check:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-body.leaving-mode .item-check:active, body.leaving-mode .item-check:hover {
-  border-color: var(--peach);
-  color: var(--peach);
-}
-
-.item-check svg { width: 14px; height: 14px; }
+.item-check:hover { border-color: var(--sage); background: rgba(139, 154, 125, 0.15); }
+body.leaving-mode .item-check:hover { border-color: var(--peach); }
+.item-check svg { width: 12px; height: 12px; opacity: 0; transition: opacity var(--dur); }
 
 .item-body { flex: 1; min-width: 0; }
-.item-title { margin: 0; font-size: 14.5px; line-height: 1.4; color: var(--ink); font-weight: 500; }
+.item-title { margin: 0; font-size: 14.5px; font-weight: 500; line-height: 1.4; }
 .item-meta { margin: 4px 0 0; font-size: 12px; color: var(--ink-faint); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
-
 .item-tag {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 10.5px;
-  font-weight: 600;
-  background: rgba(130, 163, 130, 0.15);
-  color: var(--accent);
+  display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600;
+  background: rgba(232, 214, 196, 0.08); color: var(--peach);
 }
-
-.item-tag.tag-routine {
-  background: rgba(226, 160, 130, 0.15);
-  color: var(--peach);
-}
-
 .item-menu {
-  color: var(--ink-faint);
-  padding: 4px 8px;
-  font-size: 18px;
-  line-height: 1;
-  border-radius: 8px;
-  cursor: pointer;
+  background: none; border: none; color: var(--ink-faint); cursor: pointer; font-size: 18px; line-height: 1;
+  padding: 2px 6px; border-radius: 6px; flex-shrink: 0;
 }
+.item-menu:hover { color: var(--ink); background: rgba(255,255,255,0.06); }
 
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  cursor: pointer;
-  border-radius: 999px;
-  font-weight: 600;
-  font-size: 14px;
-  padding: 12px 20px;
-  transition: transform var(--dur) var(--ease), background var(--dur) var(--ease), opacity var(--dur) var(--ease);
-}
-
-.btn:active { transform: scale(0.96); }
-.btn-accent { background: var(--accent); color: var(--accent-ink); }
-.btn-peach { background: var(--peach); color: var(--peach-ink); }
-.btn-ghost { background: transparent; color: var(--ink-dim); border: 1px solid var(--border); }
-.btn-ghost:hover { border-color: var(--accent); color: var(--ink); }
-.btn-danger { background: rgba(224, 122, 104, 0.12); color: var(--danger); border: 1px solid rgba(224, 122, 104, 0.3); }
-.btn-sm { padding: 8px 14px; font-size: 13px; }
-.btn-block { width: 100%; }
-
-.add-link {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--accent);
-  font-size: 13.5px;
-  font-weight: 600;
-  cursor: pointer;
-  padding: 10px 4px 2px;
-}
-
-.add-link svg { width: 16px; height: 16px; }
-
+/* ---------- Vault (History) ---------- */
 .search-box {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 12px 18px;
-  margin-bottom: 16px;
+  display: flex; align-items: center; gap: 10px;
+  background: var(--card); border: 1px solid var(--border); border-radius: 999px;
+  padding: 12px 18px; margin-bottom: 16px;
 }
-
-.search-box svg { width: 18px; height: 18px; color: var(--ink-faint); }
+.search-box svg { width: 16px; height: 16px; color: var(--ink-faint); flex-shrink: 0; }
 .search-box input {
   background: none; border: none; outline: none; color: var(--ink); font-size: 14.5px; width: 100%;
 }
+.search-box input::placeholder { color: var(--ink-faint); }
 
-.filter-row { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 4px; }
+.filter-row { display: flex; gap: 8px; margin-bottom: 22px; flex-wrap: wrap; }
 .chip {
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--ink-dim);
-  border-radius: 999px;
-  padding: 8px 16px;
-  font-size: 13px;
-  cursor: pointer;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.chip.active { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
-
-.vault-day { margin-bottom: 22px; }
-.vault-day-label { font-size: 11.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--peach); font-weight: 700; margin-bottom: 10px; }
-.vault-list { display: flex; flex-direction: column; gap: 8px; }
-
-.vault-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: var(--card);
-  border: 1px solid var(--border-soft);
-  border-radius: var(--radius-md);
-  padding: 12px 14px;
-}
-
-.vault-check {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: var(--accent);
-  color: var(--accent-ink);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.vault-check svg { width: 12px; height: 12px; }
-
-.place-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 16px;
-  margin-bottom: 12px;
-}
-
-.place-left { display: flex; align-items: center; gap: 14px; }
-.place-icon {
-  width: 44px; height: 44px; border-radius: var(--radius-md);
-  background: rgba(130, 163, 130, 0.15); color: var(--accent);
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
-
-.place-icon svg { width: 22px; height: 22px; }
-
-.section-card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 20px;
-  margin-bottom: 16px;
-}
-
-.field-label { font-size: 11.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--peach); font-weight: 700; margin-bottom: 8px; }
-.text-input, .time-input, .select-input {
-  width: 100%;
-  background: var(--bg-elev);
-  border: 1px solid var(--border);
-  color: var(--ink);
-  border-radius: var(--radius-sm);
-  padding: 12px 14px;
-  font-size: 14.5px;
-  outline: none;
-}
-
-.text-input:focus, .time-input:focus, .select-input:focus { border-color: var(--accent); }
-
-.toggle-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 0;
-  border-bottom: 1px solid var(--border-soft);
-}
-
-.toggle-row:last-child { border-bottom: none; }
-
-.switch {
-  position: relative; width: 44px; height: 26px; border-radius: 999px;
-  background: rgba(255,255,255,0.12); cursor: pointer; transition: background var(--dur);
-}
-
-.switch::after {
-  content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%;
-  background: var(--ink); transition: transform var(--dur) var(--ease);
-}
-
-.switch.on { background: var(--accent); }
-.switch.on::after { transform: translateX(18px); background: var(--accent-ink); }
-
-.bottom-nav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: rgba(26, 21, 18, 0.94);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-top: 1px solid var(--border-soft);
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  padding: 8px 12px calc(8px + var(--sab));
-  z-index: 40;
-}
-
-.nav-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  color: var(--ink-faint);
-  font-size: 11px;
-  font-weight: 600;
-  padding: 6px 12px;
-  border-radius: 12px;
+  border: 1px solid var(--border); background: transparent; color: var(--ink-dim);
+  border-radius: 999px; padding: 7px 16px; font-size: 13px; cursor: pointer; font-weight: 600;
   transition: all var(--dur) var(--ease);
 }
+.chip.active { background: var(--sage); color: var(--sage-ink); border-color: var(--sage); }
 
-.nav-item svg { width: 22px; height: 22px; }
-.nav-item.active { color: var(--accent); }
-body.leaving-mode .nav-item.active { color: var(--peach); }
+.empty-panel {
+  border: 1px dashed var(--border); border-radius: var(--radius-lg);
+  padding: 50px 20px; text-align: center; color: var(--ink-faint);
+}
+.empty-panel .empty-icon { width: 36px; height: 36px; margin: 0 auto 14px; opacity: 0.6; }
 
+.vault-day { margin-bottom: 22px; }
+.vault-day-label { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--sage); font-weight: 700; margin-bottom: 10px; }
+.vault-list { display: flex; flex-direction: column; gap: 8px; }
+.vault-row {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--card); border: 1px solid var(--border-soft); border-radius: var(--radius-md);
+  padding: 12px 16px;
+}
+.vault-check {
+  width: 20px; height: 20px; border-radius: 50%; background: var(--sage); color: var(--sage-ink);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.vault-check svg { width: 11px; height: 11px; }
+.vault-row-title { font-size: 14px; font-weight: 500; }
+.vault-row-meta { font-size: 12px; color: var(--ink-faint); margin-top: 2px; }
+.vault-row-time { margin-left: auto; font-size: 12px; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+
+/* ---------- Places View ---------- */
+.place-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: 18px 20px; margin-bottom: 12px;
+}
+.place-left { display: flex; align-items: center; gap: 14px; }
+.place-icon {
+  width: 44px; height: 44px; border-radius: 12px; background: var(--sage-glow); color: var(--sage);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.place-icon svg { width: 20px; height: 20px; }
+.place-name { font-family: var(--serif); font-size: 19px; font-weight: 500; }
+.place-sub { font-size: 12.5px; color: var(--ink-faint); margin-top: 2px; }
+.place-actions { display: flex; gap: 8px; }
+
+/* ---------- Settings View ---------- */
+.section-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: 22px 24px; margin-bottom: 18px;
+}
+.section-title { font-family: var(--serif); font-size: 21px; margin: 0 0 6px; }
+.section-sub { color: var(--ink-dim); font-size: 13.5px; line-height: 1.5; margin: 0 0 18px; }
+
+.field-label { font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); font-weight: 700; margin-bottom: 8px; }
+.text-input, .time-input, .select-input {
+  width: 100%; background: var(--bg-elev); border: 1px solid var(--border); color: var(--ink);
+  border-radius: var(--radius-sm); padding: 12px 15px; font-size: 14.5px; outline: none;
+  transition: border-color var(--dur);
+}
+.text-input:focus, .time-input:focus, .select-input:focus { border-color: var(--sage); }
+.text-input::placeholder { color: var(--ink-faint); }
+.field-hint { font-size: 12.5px; color: var(--ink-faint); margin-top: 8px; line-height: 1.5; }
+
+.toggle-row {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+  padding: 16px 0; border-bottom: 1px solid var(--border-soft);
+}
+.toggle-row:last-child { border-bottom: none; }
+.toggle-copy strong { font-size: 14.5px; font-weight: 600; display: block; }
+.toggle-copy span { font-size: 12.5px; color: var(--ink-faint); display: block; margin-top: 2px; max-width: 420px; }
+
+.switch {
+  position: relative; width: 44px; height: 26px; flex-shrink: 0; border-radius: 999px;
+  background: rgba(255,255,255,0.12); border: none; cursor: pointer; transition: background var(--dur);
+}
+.switch::after {
+  content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%;
+  background: #d8ceca; transition: transform var(--dur) var(--ease);
+}
+.switch.on { background: var(--sage); }
+.switch.on::after { transform: translateX(18px); background: var(--sage-ink); }
+
+.footer-tag { text-align: center; color: var(--ink-faint); font-size: 12.5px; margin: 34px 0 20px; }
+
+/* ---------- Quick Add FAB (Functional Floating Action Button) ---------- */
 .fab {
   position: fixed;
-  right: 20px;
-  bottom: calc(72px + var(--sab));
+  right: 22px;
+  bottom: clamp(22px, 8vw, 84px);
   width: 58px;
   height: 58px;
   border-radius: 50%;
-  background: var(--accent);
-  color: var(--accent-ink);
+  background: var(--sage);
+  color: var(--sage-ink);
+  border: none;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-  cursor: pointer;
-  z-index: 45;
-  transition: transform var(--dur) var(--ease), background var(--dur);
+  transition: transform var(--dur) var(--ease), background var(--dur) var(--ease);
+  z-index: 35;
 }
-
-.fab:active { transform: scale(0.92); }
-.fab svg { width: 26px; height: 26px; }
+.fab svg { width: 24px; height: 24px; }
+.fab:hover { transform: scale(1.06); }
+.fab:active { transform: scale(0.94); }
 body.leaving-mode .fab { background: var(--peach); color: var(--peach-ink); }
 
+/* ---------- Bottom Sheet Modal ---------- */
 .sheet-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(12, 9, 7, 0.75);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  z-index: 100;
+  position: fixed; inset: 0; background: rgba(12, 10, 8, 0.72); backdrop-filter: blur(4px);
+  display: flex; align-items: flex-end; justify-content: center; z-index: 60;
   animation: fadeIn var(--dur) var(--ease);
 }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 .sheet {
-  width: 100%;
-  max-width: 520px;
-  background: var(--bg-elev);
-  border: 1px solid var(--border);
-  border-bottom: none;
-  border-radius: 24px 24px 0 0;
-  padding: 20px 20px calc(24px + var(--sab));
-  animation: slideUp var(--dur) var(--ease);
-  max-height: 88vh;
-  overflow-y: auto;
+  width: 100%; max-width: 500px; background: var(--bg-elev); border: 1px solid var(--border);
+  border-bottom: none; border-radius: 24px 24px 0 0; padding: 22px 22px calc(24px + env(safe-area-inset-bottom));
+  animation: slideUp var(--dur) var(--ease); max-height: 88vh; overflow-y: auto;
 }
-
-.sheet-handle {
-  width: 36px;
-  height: 4px;
-  border-radius: 999px;
-  background: var(--ink-faint);
-  margin: 0 auto 16px;
-  opacity: 0.5;
+@media (min-width: 640px) {
+  .sheet-overlay { align-items: center; }
+  .sheet { border-radius: var(--radius-lg); border-bottom: 1px solid var(--border); padding-bottom: 24px; }
 }
+@keyframes slideUp { from { transform: translateY(28px); opacity: 0; } to { transform: none; opacity: 1; } }
 
-.sheet-title { font-family: var(--serif); font-size: 22px; font-weight: 600; margin: 0 0 16px; }
-.sheet-row { margin-bottom: 14px; }
+.sheet-title { font-family: var(--serif); font-size: 22px; margin: 0 0 18px; }
+.sheet-row { margin-bottom: 16px; }
 .sheet-actions { display: flex; gap: 10px; margin-top: 20px; }
 .sheet-actions .btn { flex: 1; }
 
-.seg {
-  display: flex;
-  gap: 4px;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 4px;
-}
-
+.seg { display: flex; gap: 6px; background: var(--bg); border: 1px solid var(--border); border-radius: 999px; padding: 4px; }
 .seg button {
-  flex: 1;
-  border: none;
-  background: transparent;
-  color: var(--ink-dim);
-  padding: 9px 10px;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all var(--dur);
+  flex: 1; border: none; background: transparent; color: var(--ink-dim); padding: 9px 10px; border-radius: 999px;
+  font-size: 13.5px; font-weight: 600; cursor: pointer; transition: all var(--dur);
 }
+.seg button.active { background: var(--sage); color: var(--sage-ink); }
 
-.seg button.active { background: var(--accent); color: var(--accent-ink); }
+.check-row { display: flex; align-items: center; gap: 10px; padding: 4px 0; }
+.check-row input { width: 18px; height: 18px; accent-color: var(--sage); }
+.check-row label { font-size: 13.5px; color: var(--ink-dim); cursor: pointer; }
 
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-
+/* ---------- Toasts ---------- */
 .toast-root {
-  position: fixed;
-  top: 16px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 120;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  align-items: center;
-  pointer-events: none;
+  position: fixed; top: 16px; left: 50%; transform: translateX(-50%); z-index: 90;
+  display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none;
 }
-
 .toast {
-  background: var(--ink);
-  color: var(--bg);
-  padding: 10px 18px;
-  border-radius: 999px;
-  font-size: 13.5px;
-  font-weight: 600;
-  box-shadow: var(--shadow-lg);
-  animation: toastIn var(--dur) var(--ease);
+  background: var(--ink); color: #1c1714; padding: 11px 20px; border-radius: 999px; font-size: 13.5px; font-weight: 600;
+  box-shadow: var(--shadow); animation: toastIn var(--dur) var(--ease);
 }
+@keyframes toastIn { from { transform: translateY(-10px); opacity: 0; } to { transform: none; opacity: 1; } }
 
-@keyframes toastIn { from { transform: translateY(-12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.stack { display: flex; flex-direction: column; gap: 10px; }
+.row-between { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 </style>
 </head>
 <body>
@@ -750,44 +563,54 @@ body.leaving-mode .fab { background: var(--peach); color: var(--peach-ink); }
     </svg>
     <span class="brand-name">Threshold</span>
   </a>
-  <div id="mini-clock" class="today-mini-clock">--:--</div>
+
+  <nav class="tabs-desktop" aria-label="Primary Desktop">
+    <a href="#/" data-nav data-route="/"><svg class="tab-ico" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.8"/><path d="M12 2.5V5M12 19v2.5M4.5 12H2M22 12h-2.5M5.4 5.4l1.6 1.6M17 17l1.6 1.6M18.6 5.4 17 7M7 17l-1.6 1.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Today</a>
+    <a href="#/history" data-nav data-route="/history"><svg class="tab-ico" viewBox="0 0 24 24" fill="none"><rect x="3.5" y="7" width="17" height="13" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M3.5 7 5.5 3.5h13L20.5 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 11h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Vault</a>
+    <a href="#/places" data-nav data-route="/places"><svg class="tab-ico" viewBox="0 0 24 24" fill="none"><path d="M12 21.5s7-6.4 7-12A7 7 0 0 0 5 9.5c0 5.6 7 12 7 12Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="9.4" r="2.3" stroke="currentColor" stroke-width="1.8"/></svg>Places</a>
+    <a href="#/settings" data-nav data-route="/settings"><svg class="tab-ico" viewBox="0 0 24 24" fill="none"><path d="M4 7h11M18 7h2M4 12h7M14 12h6M4 17h13M20 17h0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="17.5" cy="7" r="1.9" stroke="currentColor" stroke-width="1.8"/><circle cx="10.5" cy="12" r="1.9" stroke="currentColor" stroke-width="1.8"/><circle cx="16.5" cy="17" r="1.9" stroke="currentColor" stroke-width="1.8"/></svg>More</a>
+  </nav>
 </header>
 
-<!-- Main Scroll Area -->
+<!-- Main View Container -->
 <main id="app" class="app"></main>
 
-<!-- Functional Quick-Add FAB Button -->
-<button id="fab" class="fab" aria-label="Quick Add Item or Place">
+<!-- Mobile Bottom Navigation Bar -->
+<nav class="bottom-nav" aria-label="Primary Mobile">
+  <a href="#/" data-nav data-route="/"><svg class="tab-ico" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2"/><path d="M12 2.5V5M12 19v2.5M4.5 12H2M22 12h-2.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Today</a>
+  <a href="#/history" data-nav data-route="/history"><svg class="tab-ico" viewBox="0 0 24 24" fill="none"><rect x="3.5" y="7" width="17" height="13" rx="2" stroke="currentColor" stroke-width="2"/><path d="M3.5 7 5.5 3.5h13L20.5 7" stroke="currentColor" stroke-width="2"/></svg>Vault</a>
+  <a href="#/places" data-nav data-route="/places"><svg class="tab-ico" viewBox="0 0 24 24" fill="none"><path d="M12 21.5s7-6.4 7-12A7 7 0 0 0 5 9.5c0 5.6 7 12 7 12Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="9.4" r="2.2" stroke="currentColor" stroke-width="2"/></svg>Places</a>
+  <a href="#/settings" data-nav data-route="/settings"><svg class="tab-ico" viewBox="0 0 24 24" fill="none"><path d="M4 7h11M18 7h2M4 12h7M14 12h6M4 17h13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="17.5" cy="7" r="1.9" stroke="currentColor" stroke-width="2"/><circle cx="10.5" cy="12" r="1.9" stroke="currentColor" stroke-width="2"/></svg>More</a>
+</nav>
+
+<!-- Functional Quick Add FAB Button -->
+<button id="fab" class="fab" aria-label="Quick Add Item">
   <svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
 </button>
 
-<!-- Bottom Mobile Navigation Bar -->
-<nav class="bottom-nav" aria-label="Primary Mobile Navigation">
-  <a class="nav-item active" href="#/" data-nav data-route="/">
-    <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2"/><path d="M12 2.5V5M12 19v2.5M4.5 12H2M22 12h-2.5M5.4 5.4l1.6 1.6M17 17l1.6 1.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-    Today
-  </a>
-  <a class="nav-item" href="#/history" data-nav data-route="/history">
-    <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="7" width="17" height="13" rx="2" stroke="currentColor" stroke-width="2"/><path d="M3.5 7 5.5 3.5h13L20.5 7" stroke="currentColor" stroke-width="2"/><path d="M10 11h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-    Vault
-  </a>
-  <a class="nav-item" href="#/places" data-nav data-route="/places">
-    <svg viewBox="0 0 24 24" fill="none"><path d="M12 21.5s7-6.4 7-12A7 7 0 0 0 5 9.5c0 5.6 7 12 7 12Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="9.5" r="2.5" stroke="currentColor" stroke-width="2"/></svg>
-    Places
-  </a>
-  <a class="nav-item" href="#/settings" data-nav data-route="/settings">
-    <svg viewBox="0 0 24 24" fill="none"><path d="M4 7h11M18 7h2M4 12h7M14 12h6M4 17h13M20 17h0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="17.5" cy="7" r="2" stroke="currentColor" stroke-width="2"/><circle cx="10.5" cy="12" r="2" stroke="currentColor" stroke-width="2"/><circle cx="16.5" cy="17" r="2" stroke="currentColor" stroke-width="2"/></svg>
-    More
-  </a>
-</nav>
-
+<!-- Bottom Sheet Root -->
 <div id="sheet-root"></div>
 
 <script>
+/* =========================================================================
+   Threshold — Complete Logic (Single File Application)
+   ========================================================================= */
+
+// Global string escaping helper - defined early to prevent reference errors
+function esc(str) {
+  return String(str ?? '').replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  }[c]));
+}
+
 (() => {
   'use strict';
 
-  const STORE_KEY = 'threshold:v2:brown-theme';
+  const STORE_KEY = 'threshold:v1';
 
   const ICONS = {
     home: 'M4 11 12 4l8 7M6 10v9h4v-5h4v5h4v-9',
@@ -801,23 +624,14 @@ body.leaving-mode .fab { background: var(--peach); color: var(--peach-ink); }
   const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none"><path d="M4 12.5l5 5L20 6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   const PLUS_SVG = '<svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
 
-  let activeTabFilter = 'do'; // Mobile Today column filter: 'do', 'take', 'give'
-
-  function esc(str) {
-    return String(str ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  }
+  /* ---------------- State Management ---------------- */
 
   function defaultState() {
     return {
       places: [
         { id: uid(), name: 'Home', icon: 'home', lat: null, lng: null, isCurrent: true },
-        { id: uid(), name: 'Office', icon: 'office', lat: null, lng: null, isCurrent: false },
       ],
-      items: [
-        { id: uid(), type: 'do', title: 'Pack laptop & charger', time: '08:30', placeId: null, recurring: true, done: false },
-        { id: uid(), type: 'take', title: 'Keys and wallet', time: null, placeId: null, recurring: true, done: false },
-        { id: uid(), type: 'give', title: 'Return library books', time: null, placeId: null, recurring: false, done: false }
-      ],
+      items: [],
       vault: [],
       leavingPlaceId: null,
       settings: {
@@ -827,13 +641,14 @@ body.leaving-mode .fab { background: var(--peach); color: var(--peach-ink); }
         permHaptics: true,
         pingTime: '08:15',
         lastActiveDate: todayStr(),
+        lastPingFiredDate: null,
       },
     };
   }
 
-  let state = load();
+  let state = loadState();
 
-  function load() {
+  function loadState() {
     try {
       const raw = localStorage.getItem(STORE_KEY);
       if (!raw) return defaultState();
@@ -845,16 +660,17 @@ body.leaving-mode .fab { background: var(--peach); color: var(--peach-ink); }
         settings: { ...base.settings, ...(parsed.settings || {}) },
       };
     } catch (e) {
+      console.warn('Threshold: State load fallback.', e);
       return defaultState();
     }
   }
 
-  function save() {
+  function saveState() {
     localStorage.setItem(STORE_KEY, JSON.stringify(state));
   }
 
   function uid() {
-    return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
   }
 
   function todayStr(d = new Date()) {
@@ -869,34 +685,41 @@ body.leaving-mode .fab { background: var(--peach); color: var(--peach-ink); }
     return state.places.find((p) => p.id === id) || null;
   }
 
+  /* ---------------- Daily Reset ---------------- */
+
   function ensureDailyReset() {
     const today = todayStr();
     if (state.settings.lastActiveDate === today) return;
-    state.items = state.items.filter((i) => i.recurring).map((i) => ({ ...i, done: false }));
+    state.items = state.items
+      .filter((i) => i.recurring)
+      .map((i) => ({ ...i, done: false }));
     state.leavingPlaceId = null;
     state.settings.lastActiveDate = today;
-    save();
+    state.settings.lastPingFiredDate = null;
+    saveState();
   }
+
+  /* ---------------- Items Logic ---------------- */
 
   function addItem({ type, title, time, placeId, recurring }) {
     if (!title || !title.trim()) return;
     state.items.push({
       id: uid(),
-      type,
+      type: type || 'do',
       title: title.trim(),
       time: time || null,
       placeId: placeId || null,
       recurring: !!recurring,
       done: false,
     });
-    save();
+    saveState();
   }
 
   function updateItem(id, patch) {
     const it = state.items.find((i) => i.id === id);
     if (!it) return;
     Object.assign(it, patch);
-    save();
+    saveState();
   }
 
   function completeItem(id) {
@@ -915,20 +738,22 @@ body.leaving-mode .fab { background: var(--peach); color: var(--peach-ink); }
     } else {
       state.items.splice(idx, 1);
     }
-    save();
+    saveState();
     doHaptic();
   }
 
   function deleteItem(id) {
     state.items = state.items.filter((i) => i.id !== id);
-    save();
+    saveState();
   }
+
+  /* ---------------- Places Logic ---------------- */
 
   function addPlace({ name, icon, lat, lng }) {
     if (!name || !name.trim()) return null;
     const p = { id: uid(), name: name.trim(), icon: icon || 'other', lat: lat ?? null, lng: lng ?? null, isCurrent: state.places.length === 0 };
     state.places.push(p);
-    save();
+    saveState();
     return p;
   }
 
@@ -936,7 +761,7 @@ body.leaving-mode .fab { background: var(--peach); color: var(--peach-ink); }
     const p = placeById(id);
     if (!p) return;
     Object.assign(p, patch);
-    save();
+    saveState();
   }
 
   function deletePlace(id) {
@@ -945,20 +770,22 @@ body.leaving-mode .fab { background: var(--peach); color: var(--peach-ink); }
     state.items.forEach((i) => { if (i.placeId === id) i.placeId = null; });
     if (state.leavingPlaceId === id) state.leavingPlaceId = null;
     if (wasCurrent && state.places[0]) state.places[0].isCurrent = true;
-    save();
+    saveState();
   }
 
   function setCurrentPlace(id) {
     state.places.forEach((p) => { p.isCurrent = p.id === id; });
     if (state.leavingPlaceId && state.leavingPlaceId !== id) state.leavingPlaceId = null;
-    save();
+    saveState();
   }
+
+  /* ---------------- Leaving Mode ---------------- */
 
   function toggleLeaving() {
     const cp = currentPlace();
     if (!cp) return;
     state.leavingPlaceId = state.leavingPlaceId === cp.id ? null : cp.id;
-    save();
+    saveState();
     applyLeavingClass();
     render();
   }
@@ -967,9 +794,11 @@ body.leaving-mode .fab { background: var(--peach); color: var(--peach-ink); }
     document.body.classList.toggle('leaving-mode', !!state.leavingPlaceId);
   }
 
+  /* ---------------- Feedback & Helpers ---------------- */
+
   function doHaptic() {
     if (state.settings.permHaptics && 'vibrate' in navigator) {
-      try { navigator.vibrate(30); } catch (e) { }
+      try { navigator.vibrate(35); } catch (e) { /* silent */ }
     }
   }
 
@@ -991,6 +820,13 @@ body.leaving-mode .fab { background: var(--peach); color: var(--peach-ink); }
     return `${h}:${m} ${ap}`;
   }
 
+  function formatTime12(hhmm) {
+    if (!hhmm) return '';
+    const [h, m] = hhmm.split(':').map(Number);
+    const d = new Date(); d.setHours(h, m, 0, 0);
+    return formatClock(d);
+  }
+
   function greeting(d) {
     const h = d.getHours();
     if (h < 5) return 'Still up';
@@ -1001,13 +837,24 @@ body.leaving-mode .fab { background: var(--peach); color: var(--peach-ink); }
   }
 
   function dateHeading(d) {
-    return d.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase();
+    return d.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase();
   }
 
-  function iconSvg(name) {
+  function iconSvg(name, cls) {
     const d = ICONS[name] || ICONS.other;
-    return `<svg viewBox="0 0 24 24" fill="none"><path d="${d}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    return `<svg class="${cls || ''}" viewBox="0 0 24 24" fill="none"><path d="${d}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
   }
+
+  function vaultDayLabel(ts) {
+    const d = new Date(ts);
+    const today = todayStr();
+    const y = new Date(); y.setDate(y.getDate() - 1);
+    if (todayStr(d) === today) return 'Today';
+    if (todayStr(d) === todayStr(y)) return 'Yesterday';
+    return d.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' });
+  }
+
+  /* ---------------- Router & Navigation ---------------- */
 
   function currentRoute() {
     const h = location.hash.replace(/^#/, '');
@@ -1025,12 +872,14 @@ body.leaving-mode .fab { background: var(--peach); color: var(--peach-ink); }
     if (a) closeSheet();
   });
 
+  /* ---------------- Bottom Sheet Component ---------------- */
+
   function openSheet(html, onMount) {
     closeSheet();
     const root = document.getElementById('sheet-root');
     const overlay = document.createElement('div');
     overlay.className = 'sheet-overlay';
-    overlay.innerHTML = `<div class="sheet" role="dialog" aria-modal="true"><div class="sheet-handle"></div>${html}</div>`;
+    overlay.innerHTML = `<div class="sheet" role="dialog" aria-modal="true">${html}</div>`;
     overlay.addEventListener('click', (e) => { if (e.target === overlay) closeSheet(); });
     root.appendChild(overlay);
     document.addEventListener('keydown', escCloseHandler);
@@ -1047,80 +896,78 @@ body.leaving-mode .fab { background: var(--peach); color: var(--peach-ink); }
     document.removeEventListener('keydown', escCloseHandler);
   }
 
-  function setupFAB() {
-    const fab = document.getElementById('fab');
-    fab.onclick = () => {
-      const route = currentRoute();
-      if (route === '/places') {
-        openAddPlaceSheet();
-      } else {
-        openQuickAddSheet();
-      }
-    };
-  }
+  /* ---------------- Quick Add FAB Handler ---------------- */
 
   function openQuickAddSheet(defaultType = 'do') {
-    const placeOptions = state.places.map((p) => `<option value="${p.id}" ${p.isCurrent ? 'selected' : ''}>${esc(p.name)}</option>`).join('');
+    let activeType = defaultType;
     openSheet(`
-      <h3 class="sheet-title">Quick Add</h3>
+      <h3 class="sheet-title">Quick Add Item</h3>
       <div class="sheet-row">
-        <div class="field-label">Category</div>
-        <div class="seg" id="q-type-seg">
-          <button type="button" data-type="do" class="${defaultType === 'do' ? 'active' : ''}">Do</button>
-          <button type="button" data-type="take" class="${defaultType === 'take' ? 'active' : ''}">Take</button>
-          <button type="button" data-type="give" class="${defaultType === 'give' ? 'active' : ''}">Give</button>
+        <div class="field-label">Type</div>
+        <div class="seg" id="quick-add-type">
+          <button type="button" data-t="do" class="${activeType === 'do' ? 'active' : ''}">Do</button>
+          <button type="button" data-t="take" class="${activeType === 'take' ? 'active' : ''}">Take</button>
+          <button type="button" data-t="give" class="${activeType === 'give' ? 'active' : ''}">Give</button>
         </div>
       </div>
       <div class="sheet-row">
-        <div class="field-label">Title</div>
-        <input class="text-input" id="f-title" placeholder="e.g. Grab keys / Call Alex / Return item" />
+        <div class="field-label">Task or Item</div>
+        <input class="text-input" id="f-title" placeholder="e.g. Bring water bottle" autofocus />
       </div>
       <div class="sheet-row">
-        <div class="field-label">Time (Optional)</div>
+        <div class="field-label">Time (optional)</div>
         <input class="time-input" id="f-time" type="time" />
       </div>
-      <div class="sheet-row" id="f-place-container">
+      <div class="sheet-row" id="f-place-wrap" style="${activeType === 'do' ? 'display:none;' : ''}">
         <div class="field-label">Associated Place</div>
-        <select class="select-input" id="f-place">${placeOptions}</select>
+        <select class="select-input" id="f-place">
+          ${state.places.map((p) => `<option value="${p.id}" ${p.isCurrent ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}
+        </select>
       </div>
-      <div class="sheet-row" style="display:flex; align-items:center; gap:10px; margin-top:14px;">
-        <input type="checkbox" id="f-recurring" style="width:18px; height:18px; accent-color:var(--accent);" />
-        <label for="f-recurring" style="font-size:13.5px; color:var(--ink-dim);">Daily routine (resets each morning)</label>
+      <div class="sheet-row check-row">
+        <input type="checkbox" id="f-recurring" />
+        <label for="f-recurring">Daily routine (resets each morning)</label>
       </div>
       <div class="sheet-actions">
         <button class="btn btn-ghost" data-x="cancel">Cancel</button>
-        <button class="btn btn-accent" data-x="save">Save Task</button>
+        <button class="btn btn-primary" data-x="save">Save Item</button>
       </div>
     `, (root) => {
-      let selectedType = defaultType;
-      root.querySelector('#f-title').focus();
+      const typeSeg = root.querySelector('#quick-add-type');
+      const placeWrap = root.querySelector('#f-place-wrap');
+      const titleInput = root.querySelector('#f-title');
+      
+      setTimeout(() => titleInput.focus(), 80);
 
-      root.querySelectorAll('#q-type-seg button').forEach((btn) => {
-        btn.addEventListener('click', () => {
-          selectedType = btn.dataset.type;
-          root.querySelectorAll('#q-type-seg button').forEach((b) => b.classList.toggle('active', b === btn));
+      typeSeg.querySelectorAll('button').forEach((b) => {
+        b.addEventListener('click', () => {
+          activeType = b.dataset.t;
+          typeSeg.querySelectorAll('button').forEach((x) => x.classList.toggle('active', x === b));
+          placeWrap.style.display = activeType === 'do' ? 'none' : 'block';
         });
       });
 
       root.querySelector('[data-x="cancel"]').addEventListener('click', closeSheet);
       root.querySelector('[data-x="save"]').addEventListener('click', () => {
-        const title = root.querySelector('#f-title').value.trim();
-        if (!title) { toast('Please enter a title'); return; }
+        const title = titleInput.value.trim();
+        if (!title) { toast('Please enter a title.'); return; }
         const time = root.querySelector('#f-time').value || null;
-        const placeId = root.querySelector('#f-place').value || null;
+        const placeId = activeType !== 'do' ? root.querySelector('#f-place').value : null;
         const recurring = root.querySelector('#f-recurring').checked;
 
-        addItem({ type: selectedType, title, time, placeId, recurring });
+        addItem({ type: activeType, title, time, placeId, recurring });
         closeSheet();
         render();
-        toast(`Added to ${selectedType.toUpperCase()}`);
+        toast(`Added to ${activeType.toUpperCase()}`);
       });
     });
   }
 
+  /* ---------------- Main Render Logic ---------------- */
+
   function updateNavActive() {
     const route = currentRoute();
-    document.querySelectorAll('.bottom-nav .nav-item').forEach((a) => {
+    document.querySelectorAll('[data-route]').forEach((a) => {
       a.classList.toggle('active', a.dataset.route === route);
     });
   }
@@ -1130,11 +977,12 @@ body.leaving-mode .fab { background: var(--peach); color: var(--peach-ink); }
     applyLeavingClass();
     updateNavActive();
 
-    const now = new Date();
-    document.getElementById('mini-clock').textContent = formatClock(now);
-
     const route = currentRoute();
     const app = document.getElementById('app');
+    const fab = document.getElementById('fab');
+
+    // Wire global FAB click handler
+    fab.onclick = () => openQuickAddSheet('do');
 
     if (route === '/') renderToday(app);
     else if (route === '/history') renderVault(app);
@@ -1142,6 +990,8 @@ body.leaving-mode .fab { background: var(--peach); color: var(--peach-ink); }
     else if (route === '/settings') renderSettings(app);
     else renderToday(app);
   }
+
+  /* ---------------- Today View Renderer ---------------- */
 
   function renderToday(app) {
     const now = new Date();
@@ -1154,10 +1004,17 @@ body.leaving-mode .fab { background: var(--peach); color: var(--peach-ink); }
     const takeItems = openItems.filter((i) => i.type === 'take' && (!leaving || i.placeId === state.leavingPlaceId));
     const giveItems = openItems.filter((i) => i.type === 'give' && (!leaving || i.placeId === state.leavingPlaceId));
 
-    const pendingCount = cp ? openItems.filter((i) => (i.type === 'take' || i.type === 'give') && i.placeId === cp.id).length : 0;
-    const locNote = leaving
-      ? `${takeItems.length + giveItems.length} item(s) to resolve before leaving.`
-      : pendingCount === 0 ? 'Doorway is clear.' : `${pendingCount} item(s) waiting for this door.`;
+    const pendingForCurrent = cp
+      ? openItems.filter((i) => (i.type === 'take' || i.type === 'give') && i.placeId === cp.id).length
+      : 0;
+
+    let locNote;
+    if (leaving) {
+      const n = takeItems.length + giveItems.length;
+      locNote = n === 0 ? 'Clear to go — nothing left at this door.' : `${n} item${n === 1 ? '' : 's'} left before you go.`;
+    } else {
+      locNote = pendingForCurrent === 0 ? 'Nothing waiting at this door.' : `${pendingForCurrent} item${pendingForCurrent === 1 ? '' : 's'} waiting for when you leave.`;
+    }
 
     app.innerHTML = `
       <div class="today-head">
@@ -1165,52 +1022,36 @@ body.leaving-mode .fab { background: var(--peach); color: var(--peach-ink); }
           <div class="today-date">${esc(dateHeading(now))}</div>
           <div class="today-greet">${state.settings.name ? `${greeting(now)}, ${esc(state.settings.name)}` : greeting(now)}</div>
         </div>
+        <div class="today-clock">${formatClock(now)}</div>
       </div>
 
       <div class="loc-card">
-        <div class="loc-top">
-          <div class="loc-left">
-            <div class="loc-icon">${iconSvg(cp ? cp.icon : 'other')}</div>
-            <div>
-              <div class="loc-label">${leaving ? 'Leaving' : 'Current Base'}</div>
-              <div class="loc-name">${leaving ? `Leaving ${esc(leavingPlace?.name || '')}` : `At ${esc(cp ? cp.name : 'Unknown')}`}</div>
-            </div>
+        <div class="loc-left">
+          <div class="loc-icon">${iconSvg(cp ? cp.icon : 'other')}</div>
+          <div>
+            <div class="loc-label">${leaving ? 'Leaving' : 'Now'}</div>
+            <div class="loc-name">${leaving ? `Leaving ${esc(leavingPlace?.name || '')}` : `At ${esc(cp ? cp.name : 'No location set')}`}</div>
           </div>
-          ${cp ? `<button class="btn btn-sm ${leaving ? 'btn-ghost' : 'btn-peach'}" data-action="toggle-leaving">${leaving ? 'Arrived' : 'Leaving'}</button>` : ''}
         </div>
+        ${cp ? `<button class="btn ${leaving ? 'btn-ghost' : 'btn-primary'}" data-action="toggle-leaving">${leaving ? 'Arrived / Cancel' : `Leaving ${esc(cp.name)}`}</button>` : `<a href="#/places" data-nav class="btn btn-primary">Add a place</a>`}
         <div class="loc-note">${esc(locNote)}</div>
       </div>
 
-      <!-- Mobile Tab Switcher -->
-      <div class="cat-tabs">
-        <div class="cat-tab ${activeTabFilter === 'do' ? 'active' : ''}" data-cat="do">
-          Do <span class="cat-badge">${doItems.length}</span>
-        </div>
-        <div class="cat-tab ${activeTabFilter === 'take' ? 'active' : ''}" data-cat="take">
-          Take <span class="cat-badge">${takeItems.length}</span>
-        </div>
-        <div class="cat-tab ${activeTabFilter === 'give' ? 'active' : ''}" data-cat="give">
-          Give <span class="cat-badge">${giveItems.length}</span>
-        </div>
-      </div>
-
       <div class="columns">
-        <section class="col ${activeTabFilter !== 'do' ? 'mobile-hidden' : ''}">
+        <section class="col ${leaving ? 'col-hidden' : ''}">
           <div class="col-head"><span class="col-title">Do</span><span class="col-count">${doItems.length} open</span></div>
-          <div class="col-list">${doItems.length ? doItems.map(itemRow).join('') : '<p class="col-empty">Nothing scheduled to do.</p>'}</div>
-          <button class="add-link" data-action="add" data-type="do">${PLUS_SVG} Add task</button>
+          <div class="col-list">${doItems.length ? doItems.map(itemRow).join('') : '<p class="col-empty">Nothing here.</p>'}</div>
+          <button class="add-link" data-action="add" data-type="do">${PLUS_SVG} Add do</button>
         </section>
-
-        <section class="col ${activeTabFilter !== 'take' ? 'mobile-hidden' : ''}">
+        <section class="col">
           <div class="col-head"><span class="col-title">Take</span><span class="col-count">${takeItems.length} open</span></div>
-          <div class="col-list">${takeItems.length ? takeItems.map(itemRow).join('') : '<p class="col-empty">Nothing to take.</p>'}</div>
-          <button class="add-link" data-action="add" data-type="take">${PLUS_SVG} Add item</button>
+          <div class="col-list">${takeItems.length ? takeItems.map(itemRow).join('') : '<p class="col-empty">Nothing here.</p>'}</div>
+          <button class="add-link" data-action="add" data-type="take">${PLUS_SVG} Add take</button>
         </section>
-
-        <section class="col ${activeTabFilter !== 'give' ? 'mobile-hidden' : ''}">
+        <section class="col">
           <div class="col-head"><span class="col-title">Give</span><span class="col-count">${giveItems.length} open</span></div>
-          <div class="col-list">${giveItems.length ? giveItems.map(itemRow).join('') : '<p class="col-empty">Nothing to give.</p>'}</div>
-          <button class="add-link" data-action="add" data-type="give">${PLUS_SVG} Add handoff</button>
+          <div class="col-list">${giveItems.length ? giveItems.map(itemRow).join('') : '<p class="col-empty">Nothing here.</p>'}</div>
+          <button class="add-link" data-action="add" data-type="give">${PLUS_SVG} Add give</button>
         </section>
       </div>
     `;
@@ -1221,9 +1062,9 @@ body.leaving-mode .fab { background: var(--peach); color: var(--peach-ink); }
   function itemRow(it) {
     const place = it.placeId ? placeById(it.placeId) : null;
     const bits = [];
-    if (it.time) bits.push(`<span>${esc(it.time)}</span>`);
+    if (it.time) bits.push(`<span>${esc(formatTime12(it.time))}</span>`);
     if (place) bits.push(`<span class="item-tag">${esc(place.name)}</span>`);
-    if (it.recurring) bits.push(`<span class="item-tag tag-routine">Routine</span>`);
+    if (it.recurring) bits.push(`<span class="item-tag">Routine</span>`);
 
     return `
       <div class="item" data-id="${it.id}">
@@ -1237,17 +1078,9 @@ body.leaving-mode .fab { background: var(--peach); color: var(--peach-ink); }
   }
 
   function wireToday(app) {
-    app.querySelectorAll('.cat-tab').forEach((tab) => {
-      tab.addEventListener('click', () => {
-        activeTabFilter = tab.dataset.cat;
-        renderToday(app);
-      });
-    });
-
     app.querySelectorAll('[data-action="add"]').forEach((btn) => {
       btn.addEventListener('click', () => openQuickAddSheet(btn.dataset.type));
     });
-
     app.querySelectorAll('[data-action="complete"]').forEach((btn) => {
       btn.addEventListener('click', () => {
         const row = btn.closest('.item');
@@ -1255,11 +1088,9 @@ body.leaving-mode .fab { background: var(--peach); color: var(--peach-ink); }
         setTimeout(() => { completeItem(btn.dataset.id); render(); }, 180);
       });
     });
-
     app.querySelectorAll('[data-action="item-menu"]').forEach((btn) => {
       btn.addEventListener('click', () => openItemMenu(btn.dataset.id));
     });
-
     const leaveBtn = app.querySelector('[data-action="toggle-leaving"]');
     if (leaveBtn) leaveBtn.addEventListener('click', toggleLeaving);
   }
@@ -1269,13 +1100,17 @@ body.leaving-mode .fab { background: var(--peach); color: var(--peach-ink); }
     if (!it) return;
     openSheet(`
       <h3 class="sheet-title">${esc(it.title)}</h3>
-      <div style="display:flex; flex-direction:column; gap:10px;">
-        <button class="btn btn-danger btn-block" data-x="delete">Delete Task</button>
+      <div class="stack">
+        <button class="btn btn-ghost btn-block" data-x="delete">Delete item</button>
       </div>
     `, (root) => {
-      root.querySelector('[data-x="delete"]').addEventListener('click', () => { deleteItem(id); closeSheet(); render(); toast('Deleted'); });
+      root.querySelector('[data-x="delete"]').addEventListener('click', () => {
+        deleteItem(id); closeSheet(); render(); toast('Item deleted.');
+      });
     });
   }
+
+  /* ---------------- Vault Renderer ---------------- */
 
   let vaultFilter = 'all';
   let vaultQuery = '';
@@ -1286,147 +1121,242 @@ body.leaving-mode .fab { background: var(--peach); color: var(--peach-ink); }
     if (q) entries = entries.filter((v) => v.title.toLowerCase().includes(q) || (v.place || '').toLowerCase().includes(q));
 
     app.innerHTML = `
-      <div class="eyebrow">Archive</div>
-      <h1 class="page-title">History Vault</h1>
-      <p class="page-sub">A light log of completed actions and routines.</p>
+      <div class="eyebrow">History Vault</div>
+      <h1 class="page-title">Completed Log</h1>
+      <p class="page-sub">An archive of completed actions and routines so you can verify what you did.</p>
 
       <div class="search-box">
-        <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="m20 20-3.2-3.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-        <input id="vault-search" placeholder="Search title or place..." value="${esc(vaultQuery)}" />
+        <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/><path d="m20 20-3.2-3.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <input id="vault-search" placeholder="Search entries or places" value="${esc(vaultQuery)}" />
       </div>
-
       <div class="filter-row">
-        ${['all', 'do', 'take', 'give'].map((f) => `<button class="chip ${vaultFilter === f ? 'active' : ''}" data-filter="${f}">${f[0].toUpperCase() + f.slice(1)}</button>`).join('')}
+        ${['all', 'do', 'take', 'give'].map((f) => `<button class="chip ${vaultFilter === f ? 'active' : ''}" data-filter="${f}">${f === 'all' ? 'All' : f[0].toUpperCase() + f.slice(1)}</button>`).join('')}
       </div>
 
-      ${entries.length ? entries.map((v) => `
-        <div class="vault-row">
-          <div class="vault-check">${CHECK_SVG}</div>
-          <div>
-            <div style="font-size:14.5px; font-weight:500;">${esc(v.title)}</div>
-            <div style="font-size:11.5px; color:var(--ink-faint); margin-top:2px;">${v.type.toUpperCase()}${v.place ? ' · ' + esc(v.place) : ''}</div>
-          </div>
-        </div>
-      `).join('') : '<p style="text-align:center; color:var(--ink-faint); padding:30px;">Vault is currently empty.</p>'}
+      ${entries.length ? renderVaultGroups(entries) : `
+        <div class="empty-panel">
+          <svg class="empty-icon" viewBox="0 0 24 24" fill="none"><rect x="3.5" y="7" width="17" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M3.5 7 5.5 3.5h13L20.5 7" stroke="currentColor" stroke-width="1.5"/></svg>
+          <p>${q || vaultFilter !== 'all' ? 'No matching entries found.' : 'Vault is empty. Completed tasks will land here.'}</p>
+        </div>`}
     `;
 
     app.querySelector('#vault-search').addEventListener('input', (e) => { vaultQuery = e.target.value; renderVault(app); });
     app.querySelectorAll('[data-filter]').forEach((b) => b.addEventListener('click', () => { vaultFilter = b.dataset.filter; renderVault(app); }));
   }
 
+  function renderVaultGroups(entries) {
+    const groups = new Map();
+    entries.forEach((v) => {
+      const label = vaultDayLabel(v.timestamp);
+      if (!groups.has(label)) groups.set(label, []);
+      groups.get(label).push(v);
+    });
+    let html = '';
+    for (const [label, list] of groups) {
+      html += `<div class="vault-day">
+        <div class="vault-day-label">${esc(label)}</div>
+        <div class="vault-list">
+          ${list.map((v) => `
+            <div class="vault-row">
+              <div class="vault-check">${CHECK_SVG}</div>
+              <div>
+                <div class="vault-row-title">${esc(v.title)}</div>
+                <div class="vault-row-meta">${v.type.toUpperCase()}${v.place ? ' · ' + esc(v.place) : ''}</div>
+              </div>
+              <div class="vault-row-time">${esc(formatClock(new Date(v.timestamp)))}</div>
+            </div>`).join('')}
+        </div>
+      </div>`;
+    }
+    return html;
+  }
+
+  /* ---------------- Places Renderer ---------------- */
+
   function renderPlaces(app) {
     app.innerHTML = `
-      <div class="eyebrow">Locations</div>
-      <h1 class="page-title">Saved Places</h1>
-      <p class="page-sub">Configure the doors and threshold places you visit regularly.</p>
-
-      <div>
-        ${state.places.map((p) => `
-          <div class="place-card">
-            <div class="place-left">
-              <div class="place-icon">${iconSvg(p.icon)}</div>
-              <div>
-                <div style="font-family:var(--serif); font-size:18px; font-weight:600;">${esc(p.name)}</div>
-                <div style="font-size:12px; color:var(--ink-faint);">${p.isCurrent ? 'Current Location' : 'Saved Base'}</div>
-              </div>
-            </div>
-            ${!p.isCurrent ? `<button class="btn btn-sm btn-ghost" data-action="use-place" data-id="${p.id}">Set Current</button>` : '<span class="item-tag">Active</span>'}
-          </div>
-        `).join('')}
+      <div class="eyebrow">Location Thresholds</div>
+      <div class="row-between" style="align-items:flex-start; margin-bottom:8px;">
+        <div>
+          <h1 class="page-title" style="margin-bottom:6px;">Places</h1>
+          <p class="page-sub" style="margin-bottom:22px;">Organize actions around physical locations and bases.</p>
+        </div>
+        <button class="btn btn-primary" data-action="add-place">+ Add Place</button>
+      </div>
+      <div id="place-list">
+        ${state.places.map(placeRow).join('') || '<p class="col-empty">No places configured yet.</p>'}
       </div>
     `;
 
-    app.querySelectorAll('[data-action="use-place"]').forEach((b) => {
-      b.addEventListener('click', () => { setCurrentPlace(b.dataset.id); render(); toast('Place set to active.'); });
-    });
+    app.querySelector('[data-action="add-place"]').addEventListener('click', () => openAddPlaceSheet());
+    app.querySelectorAll('[data-action="edit-place"]').forEach((b) => b.addEventListener('click', () => openAddPlaceSheet(placeById(b.dataset.id))));
+    app.querySelectorAll('[data-action="use-place"]').forEach((b) => b.addEventListener('click', () => { setCurrentPlace(b.dataset.id); render(); toast('Active place updated.'); }));
   }
 
-  function openAddPlaceSheet() {
+  function placeRow(p) {
+    const sub = [p.isCurrent ? 'Active Base' : null, p.lat != null ? 'Location Pinned' : 'No Pin'].filter(Boolean).join(' · ');
+    return `
+      <div class="place-row">
+        <div class="place-left">
+          <div class="place-icon">${iconSvg(p.icon)}</div>
+          <div>
+            <div class="place-name">${esc(p.name)}</div>
+            <div class="place-sub">${esc(sub)}</div>
+          </div>
+        </div>
+        <div class="place-actions">
+          ${!p.isCurrent ? `<button class="btn btn-ghost btn-sm" data-action="use-place" data-id="${p.id}">Set Active</button>` : ''}
+          <button class="btn btn-ghost btn-sm" data-action="edit-place" data-id="${p.id}">Edit</button>
+        </div>
+      </div>`;
+  }
+
+  function openAddPlaceSheet(editing) {
+    const isEdit = editing && editing.id;
     openSheet(`
-      <h3 class="sheet-title">Add New Place</h3>
+      <h3 class="sheet-title">${isEdit ? 'Edit Place' : 'Add Place'}</h3>
       <div class="sheet-row">
-        <div class="field-label">Place Name</div>
-        <input class="text-input" id="p-name" placeholder="e.g. Office, Gym, Studio" />
+        <div class="field-label">Name</div>
+        <input class="text-input" id="p-name" placeholder="e.g. Office, Gym" value="${isEdit ? esc(editing.name) : ''}" />
       </div>
       <div class="sheet-row">
         <div class="field-label">Icon</div>
         <div class="seg" id="p-icon-seg">
-          ${Object.keys(ICONS).map((k) => `<button type="button" data-icon="${k}" class="${k === 'home' ? 'active' : ''}">${ICON_LABELS[k]}</button>`).join('')}
+          ${Object.keys(ICONS).map((k) => `<button type="button" data-icon="${k}" class="${(isEdit ? editing.icon : 'home') === k ? 'active' : ''}">${ICON_LABELS[k]}</button>`).join('')}
         </div>
       </div>
       <div class="sheet-actions">
         <button class="btn btn-ghost" data-x="cancel">Cancel</button>
-        <button class="btn btn-accent" data-x="save">Save Place</button>
+        ${isEdit ? '<button class="btn btn-danger" data-x="delete">Delete</button>' : ''}
+        <button class="btn btn-primary" data-x="save">Save</button>
       </div>
     `, (root) => {
-      let icon = 'home';
+      let icon = isEdit ? editing.icon : 'home';
+      root.querySelector('#p-name').focus();
+      
       root.querySelectorAll('#p-icon-seg button').forEach((b) => b.addEventListener('click', () => {
         icon = b.dataset.icon;
         root.querySelectorAll('#p-icon-seg button').forEach((x) => x.classList.toggle('active', x === b));
       }));
 
       root.querySelector('[data-x="cancel"]').addEventListener('click', closeSheet);
+      const delBtn = root.querySelector('[data-x="delete"]');
+      if (delBtn) delBtn.addEventListener('click', () => { deletePlace(editing.id); closeSheet(); render(); toast('Place removed.'); });
+      
       root.querySelector('[data-x="save"]').addEventListener('click', () => {
         const name = root.querySelector('#p-name').value.trim();
-        if (!name) { toast('Please name the place'); return; }
-        addPlace({ name, icon });
+        if (!name) { toast('Please enter a place name.'); return; }
+        if (isEdit) updatePlace(editing.id, { name, icon });
+        else addPlace({ name, icon });
         closeSheet();
         render();
-        toast('New place created');
       });
     });
   }
 
+  /* ---------------- Settings Renderer ---------------- */
+
   function renderSettings(app) {
     const s = state.settings;
     app.innerHTML = `
-      <div class="eyebrow">Options</div>
+      <div class="eyebrow">Preferences</div>
       <h1 class="page-title">Settings</h1>
 
       <div class="section-card">
+        <h2 class="section-title">Profile</h2>
         <div class="field-label">Your Name</div>
-        <input class="text-input" id="s-name" placeholder="Display name" value="${esc(s.name)}" />
+        <input class="text-input" id="s-name" placeholder="e.g. Alex" value="${esc(s.name)}" />
       </div>
 
       <div class="section-card">
-        <div class="field-label" style="margin-bottom:12px;">App Options</div>
+        <h2 class="section-title">Device Feedback</h2>
         <div class="toggle-row">
-          <div><strong style="font-size:14px;">Haptic Feedback</strong><br><span style="font-size:12px; color:var(--ink-faint);">Vibrate on task completion</span></div>
-          <button class="switch ${s.permHaptics ? 'on' : ''}" id="s-hap"></button>
+          <div class="toggle-copy"><strong>Haptics</strong><span>Vibrate slightly when ticking off items.</span></div>
+          <button class="switch ${s.permHaptics ? 'on' : ''}" id="s-hap" role="switch" aria-checked="${s.permHaptics}"></button>
         </div>
       </div>
 
       <div class="section-card">
-        <button class="btn btn-danger btn-block" id="s-clear">Clear All Data</button>
+        <h2 class="section-title">Day Management</h2>
+        <p class="section-sub">Daily reset happens automatically at midnight.</p>
+        <div class="stack">
+          <button class="btn btn-ghost btn-block" id="s-sample-day">Load Sample Tasks</button>
+        </div>
       </div>
+
+      <div class="section-card">
+        <h2 class="section-title">Storage</h2>
+        <p class="section-sub">All data is stored locally in your web browser.</p>
+        <button class="btn btn-danger" id="s-clear">Clear All Data</button>
+      </div>
+
+      <p class="footer-tag">Threshold · Routine & Task Companion</p>
     `;
 
-    app.querySelector('#s-name').addEventListener('change', (e) => { state.settings.name = e.target.value.trim(); save(); });
-    app.querySelector('#s-hap').addEventListener('click', () => { state.settings.permHaptics = !state.settings.permHaptics; save(); renderSettings(app); });
+    app.querySelector('#s-name').addEventListener('change', (e) => { state.settings.name = e.target.value.trim(); saveState(); });
+    app.querySelector('#s-hap').addEventListener('click', () => {
+      state.settings.permHaptics = !state.settings.permHaptics;
+      saveState();
+      renderSettings(app);
+      if (state.settings.permHaptics) doHaptic();
+    });
+    app.querySelector('#s-sample-day').addEventListener('click', () => { loadSampleDay(); render(); toast('Sample tasks loaded.'); });
     app.querySelector('#s-clear').addEventListener('click', () => {
-      localStorage.removeItem(STORE_KEY);
-      state = defaultState();
-      navigate('/');
-      render();
-      toast('App reset.');
+      openSheet(`
+        <h3 class="sheet-title">Clear all data?</h3>
+        <p class="page-sub">This removes all tasks, places, and history. This action cannot be undone.</p>
+        <div class="sheet-actions">
+          <button class="btn btn-ghost" data-x="cancel">Cancel</button>
+          <button class="btn btn-danger" data-x="confirm">Clear Everything</button>
+        </div>
+      `, (root) => {
+        root.querySelector('[data-x="cancel"]').addEventListener('click', closeSheet);
+        root.querySelector('[data-x="confirm"]').addEventListener('click', () => {
+          localStorage.removeItem(STORE_KEY);
+          state = defaultState();
+          closeSheet();
+          navigate('/');
+          render();
+          toast('Data cleared.');
+        });
+      });
     });
   }
 
+  function loadSampleDay() {
+    if (!state.places.length) {
+      state.places.push({ id: uid(), name: 'Home', icon: 'home', lat: null, lng: null, isCurrent: true });
+    }
+    const home = state.places.find((p) => p.isCurrent) || state.places[0];
+    let office = state.places.find((p) => p.name.toLowerCase() === 'office');
+    if (!office) { office = { id: uid(), name: 'Office', icon: 'office', lat: null, lng: null, isCurrent: false }; state.places.push(office); }
+
+    addItem({ type: 'do', title: 'Review morning schedule', time: '09:00', recurring: true });
+    addItem({ type: 'take', title: 'Laptop charger', placeId: home.id, recurring: false });
+    addItem({ type: 'take', title: 'Water bottle & keys', placeId: home.id, recurring: true });
+    addItem({ type: 'give', title: 'Hand documents to team', placeId: office.id, recurring: false });
+  }
+
+  /* ---------------- Initialization ---------------- */
+
   function boot() {
     ensureDailyReset();
-    save();
+    saveState();
     applyLeavingClass();
-    setupFAB();
     render();
 
     setInterval(() => {
-      const now = new Date();
-      const el = document.getElementById('mini-clock');
-      if (el) el.textContent = formatClock(now);
-    }, 10000);
+      ensureDailyReset();
+      if (currentRoute() === '/') render();
+    }, 30000);
   }
 
-  document.addEventListener('DOMContentLoaded', boot);
+  // Ensure app initializes even if DOMContentLoaded has already fired on static hosting
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
 })();
 </script>
 </body>
