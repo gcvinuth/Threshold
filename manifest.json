@@ -1,7 +1,7 @@
 {
-"name": "Threshold",
+"name": "Threshold — Door & Alarm Reminder",
 "short_name": "Threshold",
-"description": "A location-aware task, door reminder, and functional alarm manager with custom audio sound alarms.",
+"description": "A location-aware task, door reminder, and functional alarm manager with custom sound alarms and NFC door triggers.",
 "start_url": "./index.html",
 "display": "standalone",
 "orientation": "portrait-primary",
@@ -13,6 +13,20 @@
 "sizes": "192x192 512x512",
 "type": "image/svg+xml",
 "purpose": "any maskable"
+}
+],
+"shortcuts": [
+{
+"name": "Toggle Leaving Mode",
+"short_name": "Leaving",
+"description": "Engage door checklist mode",
+"url": "./index.html#/toggle-leaving"
+},
+{
+"name": "Add Door Item",
+"short_name": "Add Item",
+"description": "Quickly add a door task",
+"url": "./index.html#/"
 }
 ]
 }
