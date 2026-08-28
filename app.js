@@ -9,24 +9,40 @@
 
   const STORE_KEY = 'threshold:v1';
 
+  // ---- Ola Maps (https://maps.olakrutrim.com) ----
+  // Bring-your-own-key: the person pastes their own Ola Maps API key into
+  // More → Maps. Nothing is bundled or sent anywhere except olamaps.io.
+  const OLA = {
+    BASE: 'https://api.olamaps.io',
+    AUTOCOMPLETE: '/places/v1/autocomplete',
+    DETAILS: '/places/v1/details',
+    REVERSE_GEOCODE: '/places/v1/reverse-geocode',
+    STATIC_MAP: '/tiles/v1/styles/default-light-standard/static',
+    DOCS_URL: 'https://maps.olakrutrim.com/docs',
+  };
+
   const ICONS = {
     home: 'M4 11 12 4l8 7M6 10v9h4v-5h4v5h4v-9',
     office: 'M6 21V6l6-3 6 3v15M9 21v-4h6v4M9 11h.01M9 8h.01M15 11h.01M15 8h.01',
+    restaurant: 'M6 3v7a2 2 0 0 0 2 2v9M6 3v5M9 3v5M6 8h3M16 3c-1.7 0-3 2-3 5s1.3 5 3 5v8M16 3c1.7 0 3 2 3 5s-1.3 5-3 5',
+    cafe: 'M4 8h13v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8ZM17 9h1.5a2.5 2.5 0 0 1 0 5H17M7 3.5c-.6.6-.6 1.4 0 2M10.5 3.5c-.6.6-.6 1.4 0 2',
     gym: 'M4 12h2M18 12h2M6 9v6M18 9v6M8 12h8M6 12v0',
     school: 'M12 4 2 9l10 5 10-5-10-5ZM2 9v6M6 12.5V17c0 1.5 3 3 6 3s6-1.5 6-3v-4.5',
     other: 'M12 21.5s7-6.4 7-12A7 7 0 0 0 5 9.5c0 5.6 7 12 7 12Z',
   };
-  const ICON_LABELS = { home: 'Home', office: 'Office', gym: 'Gym', school: 'School', other: 'Place' };
+  const ICON_LABELS = { home: 'Home', office: 'Office', restaurant: 'Restaurant', cafe: 'Cafe', gym: 'Gym', school: 'School', other: 'Other' };
 
   const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none"><path d="M4 12.5l5 5L20 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
   const PLUS_SVG = '<svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+  const PIN_SVG = '<svg viewBox="0 0 24 24" fill="none"><path d="M12 21.5s7-6.4 7-12A7 7 0 0 0 5 9.5c0 5.6 7 12 7 12Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="9.4" r="2.3" stroke="currentColor" stroke-width="1.6"/></svg>';
+  const SPINNER_SVG = '<svg class="spin" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="34 100"/></svg>';
 
   /* ---------------- State ---------------- */
 
   function defaultState() {
     return {
       places: [
-        { id: uid(), name: 'Home', icon: 'home', lat: null, lng: null, isCurrent: true },
+        { id: uid(), name: 'Home', icon: 'home', lat: null, lng: null, address: null, isCurrent: true },
       ],
       items: [],
       vault: [],
@@ -39,6 +55,8 @@
         pingTime: '08:15',
         lastActiveDate: todayStr(),
         lastPingFiredDate: null,
+        olaMapsKey: '',
+        installBannerDismissed: false,
       },
     };
   }
@@ -148,9 +166,9 @@
 
   /* ---------------- Places ---------------- */
 
-  function addPlace({ name, icon, lat, lng }) {
+  function addPlace({ name, icon, lat, lng, address }) {
     if (!name || !name.trim()) return null;
-    const p = { id: uid(), name: name.trim(), icon: icon || 'other', lat: lat ?? null, lng: lng ?? null, isCurrent: state.places.length === 0 };
+    const p = { id: uid(), name: name.trim(), icon: icon || 'other', lat: lat ?? null, lng: lng ?? null, address: address || null, isCurrent: state.places.length === 0 };
     state.places.push(p);
     save();
     return p;
@@ -317,6 +335,71 @@
       geoWatchId = null;
     }
     proximitySuggestion = null;
+  }
+
+  // ---- Ola Maps: search, reverse geocode, static preview ----
+
+  function olaKey() {
+    return (state.settings.olaMapsKey || '').trim();
+  }
+
+  function debounce(fn, ms) {
+    let t = null;
+    return (...args) => {
+      clearTimeout(t);
+      t = setTimeout(() => fn(...args), ms);
+    };
+  }
+
+  async function olaAutocomplete(query, lat, lng) {
+    const key = olaKey();
+    if (!key || !query || query.trim().length < 3) return [];
+    const params = new URLSearchParams({ input: query.trim(), api_key: key });
+    if (lat != null && lng != null) params.set('location', `${lat},${lng}`);
+    const res = await fetch(`${OLA.BASE}${OLA.AUTOCOMPLETE}?${params.toString()}`);
+    if (!res.ok) throw new Error(`Ola Maps autocomplete failed (${res.status})`);
+    const data = await res.json();
+    return (data.predictions || []).map((p) => ({
+      placeId: p.place_id,
+      description: p.description,
+      main: p.structured_formatting?.main_text || p.description,
+      secondary: p.structured_formatting?.secondary_text || '',
+    }));
+  }
+
+  async function olaPlaceDetails(placeId) {
+    const key = olaKey();
+    if (!key || !placeId) return null;
+    const params = new URLSearchParams({ place_id: placeId, api_key: key });
+    const res = await fetch(`${OLA.BASE}${OLA.DETAILS}?${params.toString()}`);
+    if (!res.ok) throw new Error(`Ola Maps place details failed (${res.status})`);
+    const data = await res.json();
+    const r = data.result;
+    if (!r || !r.geometry?.location) return null;
+    return {
+      lat: r.geometry.location.lat,
+      lng: r.geometry.location.lng,
+      address: r.formatted_address || r.name || null,
+    };
+  }
+
+  async function olaReverseGeocode(lat, lng) {
+    const key = olaKey();
+    if (!key) return null;
+    const params = new URLSearchParams({ latlng: `${lat},${lng}`, api_key: key });
+    const res = await fetch(`${OLA.BASE}${OLA.REVERSE_GEOCODE}?${params.toString()}`);
+    if (!res.ok) throw new Error(`Ola Maps reverse geocode failed (${res.status})`);
+    const data = await res.json();
+    const first = (data.results || [])[0];
+    return first ? (first.formatted_address || null) : null;
+  }
+
+  function olaStaticMapUrl(lat, lng, { zoom = 15, width = 640, height = 220 } = {}) {
+    const key = olaKey();
+    if (!key || lat == null || lng == null) return null;
+    const marker = `${lng},${lat}|marker:true|color:%23e0a458`;
+    const params = new URLSearchParams({ api_key: key, marker });
+    return `${OLA.BASE}${OLA.STATIC_MAP}/${lng},${lat},${zoom}/${width}x${height}.png?${params.toString()}`;
   }
 
   // ---- Morning leaving ping ----
@@ -736,7 +819,8 @@
   }
 
   function placeRow(p) {
-    const sub = [p.isCurrent ? 'Current' : null, p.lat != null ? 'Pinned' : 'No pin'].filter(Boolean).join(' \u00b7 ');
+    const locBit = p.address || (p.lat != null ? `${p.lat.toFixed(4)}, ${p.lng.toFixed(4)}` : 'No pin yet');
+    const sub = [p.isCurrent ? 'Current' : null, locBit].filter(Boolean).join(' \u00b7 ');
     return `
       <div class="place-row">
         <div class="place-left">
@@ -755,22 +839,38 @@
 
   function openAddPlaceSheet(editing) {
     const isEdit = editing && editing.id;
+    const hasKey = !!olaKey();
     openSheet(`
       <h3 class="sheet-title">${isEdit ? 'Edit place' : 'Add a place'}</h3>
       <div class="sheet-row">
         <div class="field-label">Name</div>
-        <input class="text-input" id="p-name" placeholder="e.g. Office" value="${isEdit ? esc(editing.name) : ''}" />
+        <input class="text-input" id="p-name" placeholder="e.g. Office, Mum\u2019s place, Ravi\u2019s Tiffin" value="${isEdit ? esc(editing.name) : ''}" />
       </div>
       <div class="sheet-row">
         <div class="field-label">Icon</div>
-        <div class="seg" id="p-icon-seg">
+        <div class="seg seg-wrap" id="p-icon-seg">
           ${Object.keys(ICONS).map((k) => `<button type="button" data-icon="${k}" class="${(isEdit ? editing.icon : 'home') === k ? 'active' : ''}">${ICON_LABELS[k]}</button>`).join('')}
         </div>
       </div>
+
       <div class="sheet-row">
-        <button class="btn btn-ghost btn-block" id="p-pin" type="button">${isEdit && editing.lat != null ? 'Update pin to my current location' : 'Pin my current location'}</button>
-        <p class="field-hint" id="p-pin-status">${isEdit && editing.lat != null ? 'Pinned \u2014 Threshold can tell when you\u2019re nearby.' : 'Optional. Lets Threshold suggest switching when you\u2019re nearby.'}</p>
+        <div class="field-label">Location</div>
+        ${hasKey ? `
+          <div class="place-search" id="p-search-wrap">
+            <div class="search-box search-box-flat">
+              <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.6"/><path d="m20 20-3.2-3.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+              <input id="p-search" placeholder="Search on Ola Maps \u2014 e.g. a cafe or address" autocomplete="off" />
+            </div>
+            <div class="place-results" id="p-search-results" hidden></div>
+          </div>
+        ` : `
+          <p class="field-hint">Add an <a href="#/settings" data-nav class="text-btn" id="p-goto-settings">Ola Maps API key</a> in More to search for places by name.</p>
+        `}
+        <button class="btn btn-ghost btn-block" id="p-pin" type="button" style="margin-top:10px;">${PIN_SVG} ${isEdit && editing.lat != null ? 'Update to my current location' : 'Use my current location'}</button>
+        <p class="field-hint" id="p-pin-status">${isEdit && editing.lat != null ? 'Pinned \u2014 Threshold can tell when you\u2019re nearby.' : 'Lets Threshold suggest switching to this place when you\u2019re nearby.'}</p>
+        <div id="p-map-preview"></div>
       </div>
+
       <div class="sheet-actions">
         <button class="btn btn-ghost" data-x="cancel">Cancel</button>
         ${isEdit ? '<button class="btn btn-danger" data-x="delete">Delete</button>' : ''}
@@ -778,22 +878,100 @@
       </div>
     `, (root) => {
       let icon = isEdit ? editing.icon : 'home';
-      let pin = isEdit ? { lat: editing.lat, lng: editing.lng } : { lat: null, lng: null };
+      let pin = isEdit ? { lat: editing.lat, lng: editing.lng, address: editing.address || null } : { lat: null, lng: null, address: null };
       root.querySelector('#p-name').focus();
       root.querySelectorAll('#p-icon-seg button').forEach((b) => b.addEventListener('click', () => {
         icon = b.dataset.icon;
         root.querySelectorAll('#p-icon-seg button').forEach((x) => x.classList.toggle('active', x === b));
       }));
+
+      const statusEl = root.querySelector('#p-pin-status');
+      const previewEl = root.querySelector('#p-map-preview');
+
+      function renderPreview() {
+        if (pin.lat == null || pin.lng == null) { previewEl.innerHTML = ''; return; }
+        const mapUrl = olaStaticMapUrl(pin.lat, pin.lng);
+        previewEl.innerHTML = `
+          <div class="map-preview-card">
+            ${mapUrl ? `<img class="map-preview" src="${mapUrl}" alt="Map preview of the pinned spot" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'map-preview map-preview-fallback',textContent:'Map preview unavailable'}))" />` : `<div class="map-preview map-preview-fallback">${PIN_SVG}<span>${pin.lat.toFixed(5)}, ${pin.lng.toFixed(5)}</span></div>`}
+            ${pin.address ? `<p class="field-hint" style="margin-top:8px;">${esc(pin.address)}</p>` : ''}
+          </div>`;
+      }
+      renderPreview();
+
+      // ---- Search (Ola Maps autocomplete) ----
+      if (hasKey) {
+        const searchInput = root.querySelector('#p-search');
+        const resultsEl = root.querySelector('#p-search-results');
+        let reqToken = 0;
+        const runSearch = debounce(async (q) => {
+          const myToken = ++reqToken;
+          if (q.trim().length < 3) { resultsEl.hidden = true; resultsEl.innerHTML = ''; return; }
+          resultsEl.hidden = false;
+          resultsEl.innerHTML = `<div class="place-result place-result-status">${SPINNER_SVG} Searching\u2026</div>`;
+          try {
+            const cp = currentPlace();
+            const preds = await olaAutocomplete(q, cp?.lat, cp?.lng);
+            if (myToken !== reqToken) return;
+            if (!preds.length) {
+              resultsEl.innerHTML = `<div class="place-result place-result-status">No matches. Try a different search.</div>`;
+              return;
+            }
+            resultsEl.innerHTML = preds.map((p, i) => `
+              <button type="button" class="place-result" data-idx="${i}">
+                <span class="place-result-main">${esc(p.main)}</span>
+                ${p.secondary ? `<span class="place-result-sub">${esc(p.secondary)}</span>` : ''}
+              </button>`).join('');
+            resultsEl.querySelectorAll('.place-result[data-idx]').forEach((btn) => {
+              btn.addEventListener('click', async () => {
+                const pred = preds[Number(btn.dataset.idx)];
+                btn.disabled = true;
+                btn.innerHTML = `<span class="place-result-main">${SPINNER_SVG} Locating\u2026</span>`;
+                try {
+                  const details = await olaPlaceDetails(pred.placeId);
+                  if (!details) { toast('Couldn\u2019t load that place.'); return; }
+                  pin = { lat: details.lat, lng: details.lng, address: details.address || pred.description };
+                  searchInput.value = pred.main;
+                  resultsEl.hidden = true;
+                  statusEl.textContent = 'Pinned from search \u2014 Threshold can tell when you\u2019re nearby.';
+                  renderPreview();
+                  if (!root.querySelector('#p-name').value.trim()) root.querySelector('#p-name').value = pred.main;
+                } catch (e) {
+                  console.warn('Ola Maps details failed', e);
+                  toast('Ola Maps lookup failed. Check your API key in More.');
+                }
+              });
+            });
+          } catch (e) {
+            if (myToken !== reqToken) return;
+            console.warn('Ola Maps autocomplete failed', e);
+            resultsEl.innerHTML = `<div class="place-result place-result-status">Search failed. Check your API key in More.</div>`;
+          }
+        }, 350);
+        searchInput.addEventListener('input', (e) => runSearch(e.target.value));
+        searchInput.addEventListener('focus', () => { if (resultsEl.innerHTML && searchInput.value.trim().length >= 3) resultsEl.hidden = false; });
+        document.addEventListener('click', (e) => {
+          if (!root.contains(e.target)) return;
+          if (!e.target.closest('#p-search-wrap')) resultsEl.hidden = true;
+        });
+      }
+
       root.querySelector('#p-pin').addEventListener('click', () => {
         if (!('geolocation' in navigator)) { toast('Location isn\u2019t available on this device.'); return; }
-        const statusEl = root.querySelector('#p-pin-status');
         statusEl.textContent = 'Locating\u2026';
         navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            pin = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          async (pos) => {
+            pin = { lat: pos.coords.latitude, lng: pos.coords.longitude, address: null };
             statusEl.textContent = 'Pinned \u2014 Threshold can tell when you\u2019re nearby.';
             if (!state.settings.permLocation) { state.settings.permLocation = true; save(); startGeoWatch(); }
+            renderPreview();
             toast('Location pinned.');
+            if (hasKey) {
+              try {
+                const address = await olaReverseGeocode(pin.lat, pin.lng);
+                if (address) { pin.address = address; statusEl.textContent = 'Pinned \u2014 Threshold can tell when you\u2019re nearby.'; renderPreview(); }
+              } catch (e) { console.warn('Ola Maps reverse geocode failed', e); }
+            }
           },
           () => { statusEl.textContent = 'Couldn\u2019t get your location. Check permissions.'; },
           { enableHighAccuracy: true, timeout: 8000 }
@@ -805,8 +983,8 @@
       root.querySelector('[data-x="save"]').addEventListener('click', () => {
         const name = root.querySelector('#p-name').value.trim();
         if (!name) { toast('Name it first.'); return; }
-        if (isEdit) updatePlace(editing.id, { name, icon, lat: pin.lat, lng: pin.lng });
-        else addPlace({ name, icon, lat: pin.lat, lng: pin.lng });
+        if (isEdit) updatePlace(editing.id, { name, icon, lat: pin.lat, lng: pin.lng, address: pin.address });
+        else addPlace({ name, icon, lat: pin.lat, lng: pin.lng, address: pin.address });
         closeSheet();
         render();
       });
@@ -850,6 +1028,14 @@
       </div>
 
       <div class="section-card">
+        <h2 class="section-title">Maps</h2>
+        <p class="section-sub">Threshold uses <a href="${OLA.DOCS_URL}" target="_blank" rel="noopener">Ola Maps</a> to search for places and preview pinned spots. Paste your own API key below \u2014 it\u2019s stored only on this device and sent straight to olamaps.io, never anywhere else.</p>
+        <div class="field-label">Ola Maps API key</div>
+        <input class="text-input" id="s-ola-key" placeholder="Paste your Ola Maps API key" value="${esc(s.olaMapsKey || '')}" autocomplete="off" spellcheck="false" />
+        <p class="field-hint">Don\u2019t have one? <a href="${OLA.DOCS_URL}" target="_blank" rel="noopener">Get a free key at maps.olakrutrim.com</a>. Without a key, you can still pin places using your device\u2019s current location.</p>
+      </div>
+
+      <div class="section-card">
         <h2 class="section-title">Day</h2>
         <p class="section-sub">At midnight, one-off items clear and daily routines reset. The vault keeps the ticks.</p>
         <div class="stack">
@@ -868,6 +1054,11 @@
     `;
 
     app.querySelector('#s-name').addEventListener('change', (e) => { state.settings.name = e.target.value.trim(); save(); });
+    app.querySelector('#s-ola-key').addEventListener('change', (e) => {
+      state.settings.olaMapsKey = e.target.value.trim();
+      save();
+      toast(state.settings.olaMapsKey ? 'Ola Maps key saved.' : 'Ola Maps key cleared.');
+    });
     app.querySelector('#s-loc').addEventListener('click', () => requestLocationPermission(!state.settings.permLocation));
     app.querySelector('#s-rem').addEventListener('click', () => requestReminderPermission(!state.settings.permReminders));
     app.querySelector('#s-hap').addEventListener('click', () => setHaptics(!state.settings.permHaptics));
@@ -916,6 +1107,62 @@
     addItem({ type: 'give', title: 'Return Sarah\u2019s book', placeId: office.id, recurring: false });
     addItem({ type: 'give', title: 'Hand rent check to landlord', placeId: home.id, recurring: false });
   }
+
+  /* ---------------- PWA: install prompt + offline banner ---------------- */
+
+  let deferredInstallPrompt = null;
+  let isOffline = !navigator.onLine;
+
+  function isStandalone() {
+    return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  }
+
+  function renderBanners() {
+    const root = document.getElementById('banner-root');
+    if (!root) return;
+    const parts = [];
+    if (isOffline) {
+      parts.push(`<div class="banner banner-offline">You\u2019re offline \u2014 everything still saves right here on this device.</div>`);
+    }
+    if (deferredInstallPrompt && !state.settings.installBannerDismissed && !isStandalone()) {
+      parts.push(`
+        <div class="banner banner-install">
+          <span>Install Threshold for a faster, full-screen experience.</span>
+          <div class="banner-actions">
+            <button class="btn btn-light btn-sm" id="banner-install-btn">Install</button>
+            <button class="banner-dismiss" id="banner-dismiss-btn" aria-label="Dismiss">\u2715</button>
+          </div>
+        </div>`);
+    }
+    root.innerHTML = parts.join('');
+    const installBtn = document.getElementById('banner-install-btn');
+    if (installBtn) installBtn.addEventListener('click', async () => {
+      if (!deferredInstallPrompt) return;
+      deferredInstallPrompt.prompt();
+      try { await deferredInstallPrompt.userChoice; } catch (e) { /* ignore */ }
+      deferredInstallPrompt = null;
+      renderBanners();
+    });
+    const dismissBtn = document.getElementById('banner-dismiss-btn');
+    if (dismissBtn) dismissBtn.addEventListener('click', () => {
+      state.settings.installBannerDismissed = true;
+      save();
+      renderBanners();
+    });
+  }
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    renderBanners();
+  });
+  window.addEventListener('appinstalled', () => {
+    deferredInstallPrompt = null;
+    toast('Threshold installed \u2014 find it on your home screen.');
+    renderBanners();
+  });
+  window.addEventListener('online', () => { isOffline = false; renderBanners(); toast('Back online.'); });
+  window.addEventListener('offline', () => { isOffline = true; renderBanners(); });
 
   /* ---------------- Small utils ---------------- */
 
