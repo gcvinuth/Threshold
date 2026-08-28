@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Threshold — Door & Alarm Reminder</title>
-<meta name="description" content="A location-aware task, door reminder, and functional alarm manager." />
+<meta name="description" content="A location-aware task, door reminder, dynamic weather helper, and functional alarm manager." />
 <meta name="theme-color" content="#0b0e14" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -164,6 +164,25 @@ body.leaving-mode .loc-icon { background: rgba(224,164,88,0.16); color: var(--am
 .btn-danger:hover { background: rgba(217,138,124,0.08); }
 .btn-sm { padding: 8px 14px; font-size: 13px; }
 .btn-block { width: 100%; }
+
+.streak-bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  background: linear-gradient(90deg, rgba(224,164,88,0.12), rgba(139,162,212,0.1));
+  border: 1px solid rgba(224,164,88,0.25); border-radius: var(--radius-md);
+  padding: 12px 18px; margin-bottom: 20px; font-size: 14px;
+}
+.streak-left { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+.streak-fire { font-size: 18px; }
+
+.weather-banner {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  background: rgba(139,162,212,0.12); border: 1px solid rgba(139,162,212,0.3); border-radius: var(--radius-md);
+  padding: 12px 16px; margin-bottom: 20px; font-size: 13.5px;
+}
+
+.quick-toolbar {
+  display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;
+}
 
 .proximity-banner {
   display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
@@ -411,7 +430,7 @@ body.leaving-mode .loc-icon { background: rgba(224,164,88,0.16); color: var(--am
 (() => {
   'use strict';
 
-  const STORE_KEY = 'threshold:v2';
+  const STORE_KEY = 'threshold:v3';
 
   const ICONS = {
     home: 'M4 11 12 4l8 7M6 10v9h4v-5h4v5h4v-9',
@@ -426,6 +445,36 @@ body.leaving-mode .loc-icon { background: rgba(224,164,88,0.16); color: var(--am
   const PLUS_SVG = '<svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
   const BELL_SVG = '<svg viewBox="0 0 24 24" fill="none"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
+  const ROUTINE_PRESETS = [
+    {
+      id: 'office',
+      name: '🏢 Office Commute',
+      items: [
+        { title: 'Work Laptop & Charger', type: 'take' },
+        { title: 'Security Badge / Keycard', type: 'take' },
+        { title: 'Water Bottle & Lunch', type: 'take' },
+      ]
+    },
+    {
+      id: 'gym',
+      name: '🏋️ Gym Day Routine',
+      items: [
+        { title: 'Gym Towel & Locker Padlock', type: 'take' },
+        { title: 'Water Bottle & Shaker', type: 'take' },
+        { title: 'Wireless Earbuds', type: 'take' },
+      ]
+    },
+    {
+      id: 'travel',
+      name: '✈️ Travel / Trip',
+      items: [
+        { title: 'Passport & Travel ID', type: 'take' },
+        { title: 'Power Bank & Charging Cables', type: 'take' },
+        { title: 'Medication & Toiletries Bag', type: 'take' },
+      ]
+    }
+  ];
+
   function defaultState() {
     return {
       places: [
@@ -433,6 +482,8 @@ body.leaving-mode .loc-icon { background: rgba(224,164,88,0.16); color: var(--am
       ],
       items: [],
       vault: [],
+      streak: { count: 0, lastClearedDate: null, maxCount: 0 },
+      weatherSuggestionDismissedDate: null,
       leavingPlaceId: null,
       settings: {
         name: '',
@@ -444,8 +495,8 @@ body.leaving-mode .loc-icon { background: rgba(224,164,88,0.16); color: var(--am
         lastActiveDate: todayStr(),
         lastPingFiredDate: null,
         soundTone: 'synth-bell', // 'synth-bell' | 'synth-radar' | 'synth-soft' | 'custom'
-        customSoundData: null,   // Base64 Data URL for user's phone sound file
-        customSoundName: '',     // Display filename
+        customSoundData: null,
+        customSoundName: '',
       },
     };
   }
@@ -453,6 +504,7 @@ body.leaving-mode .loc-icon { background: rgba(224,164,88,0.16); color: var(--am
   let state = load();
   let deferredInstallPrompt = null;
   let customAudioElement = null;
+  let cachedWeatherInfo = null;
 
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
@@ -469,6 +521,7 @@ body.leaving-mode .loc-icon { background: rgba(224,164,88,0.16); color: var(--am
       return {
         ...base,
         ...parsed,
+        streak: { ...base.streak, ...(parsed.streak || {}) },
         settings: { ...base.settings, ...(parsed.settings || {}) },
       };
     } catch (e) {
@@ -497,6 +550,63 @@ body.leaving-mode .loc-icon { background: rgba(224,164,88,0.16); color: var(--am
     return state.places.find((p) => p.id === id) || null;
   }
 
+  async function initNFCListener() {
+    if ('NDEFReader' in window) {
+      try {
+        const ndef = new NDEFReader();
+        await ndef.scan();
+        ndef.addEventListener("reading", () => {
+          toggleLeaving();
+          doHaptic();
+          toast("🏷️ NFC Door Tag detected! Toggled Leaving Mode.");
+        });
+      } catch (err) {
+        console.warn("Web NFC scan not active or permitted:", err);
+      }
+    }
+  }
+
+  async function writeNFCTag() {
+    if (!('NDEFReader' in window)) {
+      toast("Web NFC is not supported on this browser or device.");
+      return;
+    }
+    try {
+      const ndef = new NDEFReader();
+      toast("Hold your NFC sticker near the back of your phone...");
+      await ndef.write({
+        records: [{ recordType: "url", data: window.location.origin + window.location.pathname + "#/toggle-leaving" }]
+      });
+      toast("Success! NFC door tag created!");
+    } catch (err) {
+      toast("NFC write failed: " + (err.message || err));
+    }
+  }
+
+  async function checkWeatherRainForecast() {
+    const cp = currentPlace();
+    let lat = cp?.lat;
+    let lng = cp?.lng;
+
+    if (!lat || !lng) return;
+
+    try {
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current_weather=true&daily=precipitation_probability_max,weathercode&timezone=auto`;
+      const res = await fetch(url);
+      if (!res.ok) return;
+      const data = await res.json();
+      
+      const prob = data.daily?.precipitation_probability_max?.[0] || 0;
+      const code = data.current_weather?.weathercode;
+      const isRainy = prob > 35 || (code >= 51 && code <= 99);
+
+      cachedWeatherInfo = { isRainy, prob, code };
+      if (currentRoute() === '/') render();
+    } catch (err) {
+      console.warn("Weather fetch skipped:", err);
+    }
+  }
+
   let audioCtx = null;
   let activeAlarmInterval = null;
 
@@ -516,13 +626,13 @@ body.leaving-mode .loc-icon { background: rgba(224,164,88,0.16); color: var(--am
         gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
       } else if (type === 'synth-soft') {
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
-        osc.frequency.exponentialRampToValueAtTime(659.25, audioCtx.currentTime + 0.4); // E5
+        osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(659.25, audioCtx.currentTime + 0.4);
         gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
-      } else { // default synth-bell
+      } else {
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime);
         osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.3);
         gain.gain.setValueAtTime(0.35, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
@@ -545,8 +655,7 @@ body.leaving-mode .loc-icon { background: rgba(224,164,88,0.16); color: var(--am
       try {
         customAudioElement = new Audio(state.settings.customSoundData);
         customAudioElement.loop = true;
-        customAudioElement.play().catch((err) => {
-          console.warn('Custom audio playback issue, fallback to synth:', err);
+        customAudioElement.play().catch(() => {
           playSynthSound('synth-bell');
           activeAlarmInterval = setInterval(() => playSynthSound('synth-bell'), 800);
         });
@@ -590,19 +699,6 @@ body.leaving-mode .loc-icon { background: rgba(224,164,88,0.16); color: var(--am
     }
   }
 
-  function startAlarmRingtone() {
-    stopAlarmRingtone();
-    playAlarmSound();
-    activeAlarmInterval = setInterval(playAlarmSound, 800);
-  }
-
-  function stopAlarmRingtone() {
-    if (activeAlarmInterval) {
-      clearInterval(activeAlarmInterval);
-      activeAlarmInterval = null;
-    }
-  }
-
   function showInitialPermissionPromptIfNeeded() {
     if (state.settings.initialSetupDone) return;
 
@@ -613,7 +709,7 @@ body.leaving-mode .loc-icon { background: rgba(224,164,88,0.16); color: var(--am
           <div class="permission-icon">${BELL_SVG}</div>
           <h2 class="page-title" style="font-size: 26px; margin-bottom: 8px;">Welcome to Threshold</h2>
           <p class="page-sub" style="font-size: 14px; margin-bottom: 20px;">
-            To work as your personal alarm and door reminder, Threshold needs permission to send phone notifications and detect your location when near bases.
+            To work as your door reminder & alarm assistant, Threshold can send phone alerts, play audio alarms, and track base proximity.
           </p>
           <div style="display: flex; flex-direction: column; gap: 10px;">
             <button class="btn btn-accent btn-block" id="btn-grant-all">Grant Permissions & Start</button>
@@ -634,18 +730,16 @@ body.leaving-mode .loc-icon { background: rgba(224,164,88,0.16); color: var(--am
       state.settings.initialSetupDone = true;
       save();
       modalRoot.innerHTML = '';
-      toast('You can turn on permissions anytime in settings.');
+      toast('You can configure settings anytime.');
     });
   }
 
   async function requestAllPermissions() {
-    // Audio Context activation gesture
     try {
       if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       if (audioCtx.state === 'suspended') await audioCtx.resume();
     } catch (e) { /* ignore */ }
 
-    // Request Notification permission
     if ('Notification' in window) {
       try {
         const result = await Notification.requestPermission();
@@ -653,31 +747,27 @@ body.leaving-mode .loc-icon { background: rgba(224,164,88,0.16); color: var(--am
       } catch (e) {
         state.settings.permReminders = true;
       }
-    } else {
-      state.settings.permReminders = true;
     }
 
-    // Request Location permission
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
         () => {
           state.settings.permLocation = true;
           save();
           startGeoWatch();
-          toast('Permissions granted! Location and notifications active.');
+          checkWeatherRainForecast();
+          toast('Permissions granted!');
           render();
         },
         () => {
           state.settings.permLocation = false;
           save();
-          toast('Notification active. Location permission was denied.');
           render();
         },
         { enableHighAccuracy: true, timeout: 8000 }
       );
     } else {
       save();
-      toast('Notifications enabled.');
       render();
     }
   }
@@ -728,13 +818,34 @@ body.leaving-mode .loc-icon { background: rgba(224,164,88,0.16); color: var(--am
       place: it.placeId ? (placeById(it.placeId)?.name || null) : null,
       timestamp: Date.now(),
     });
+
     if (it.recurring) {
       it.done = true;
     } else {
       state.items.splice(idx, 1);
     }
     save();
+    checkStreakUpdate();
     doHaptic();
+  }
+
+  function checkStreakUpdate() {
+    if (!state.leavingPlaceId) return;
+    const currentPlaceId = state.leavingPlaceId;
+    const remainingDoorItems = state.items.filter(i => !i.done && (i.type === 'take' || i.type === 'give') && i.placeId === currentPlaceId);
+    
+    if (remainingDoorItems.length === 0) {
+      const today = todayStr();
+      if (state.streak.lastClearedDate !== today) {
+        state.streak.count = (state.streak.count || 0) + 1;
+        state.streak.lastClearedDate = today;
+        if (state.streak.count > (state.streak.maxCount || 0)) {
+          state.streak.maxCount = state.streak.count;
+        }
+        save();
+        toast(`🔥 Streak increased! ${state.streak.count} day door clear streak.`);
+      }
+    }
   }
 
   function deleteItem(id) {
@@ -770,6 +881,7 @@ body.leaving-mode .loc-icon { background: rgba(224,164,88,0.16); color: var(--am
     state.places.forEach((p) => { p.isCurrent = p.id === id; });
     if (state.leavingPlaceId && state.leavingPlaceId !== id) state.leavingPlaceId = null;
     save();
+    checkWeatherRainForecast();
   }
 
   function toggleLeaving() {
@@ -842,7 +954,6 @@ body.leaving-mode .loc-icon { background: rgba(224,164,88,0.16); color: var(--am
     const today = todayStr(now);
     const hhmm = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-    // 1. Check item alarms
     state.items.forEach((item) => {
       if (!item.done && item.time === hhmm && item.lastTriggeredDate !== today) {
         item.lastTriggeredDate = today;
@@ -851,11 +962,10 @@ body.leaving-mode .loc-icon { background: rgba(224,164,88,0.16); color: var(--am
       }
     });
 
-    // 2. Check morning leaving ping
     if (state.settings.permReminders && hhmm === state.settings.pingTime && state.settings.lastPingFiredDate !== today) {
       state.settings.lastPingFiredDate = today;
       save();
-      fireSystemNotification('Threshold Morning Reminder', 'Check what you need to take before you leave!');
+      fireSystemNotification('Threshold Morning Reminder', 'Check what you need to take before leaving!');
     }
   }
 
@@ -899,12 +1009,7 @@ body.leaving-mode .loc-icon { background: rgba(224,164,88,0.16); color: var(--am
   function fireSystemNotification(title, body) {
     if ('Notification' in window && Notification.permission === 'granted') {
       try {
-        new Notification(title, {
-          body,
-          icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23aab8d1"><circle cx="12" cy="12" r="10"/></svg>',
-          tag: 'threshold-alarm',
-          requireInteraction: true
-        });
+        new Notification(title, { body, icon: 'manifest.json', tag: 'threshold-alarm', requireInteraction: true });
       } catch (e) {
         toast(`${title}: ${body}`);
       }
@@ -966,7 +1071,12 @@ body.leaving-mode .loc-icon { background: rgba(224,164,88,0.16); color: var(--am
   }
 
   function currentRoute() {
-    return location.hash.replace(/^#/, '') || '/';
+    const raw = location.hash.replace(/^#/, '') || '/';
+    if (raw === '/toggle-leaving') {
+      setTimeout(() => { toggleLeaving(); location.hash = '/'; }, 100);
+      return '/';
+    }
+    return raw;
   }
 
   function navigate(route) {
@@ -1041,9 +1151,9 @@ body.leaving-mode .loc-icon { background: rgba(224,164,88,0.16); color: var(--am
     let locNote;
     if (leaving) {
       const n = takeItems.length + giveItems.length;
-      locNote = n === 0 ? 'Clear to go — nothing left at this door.' : `${n} item${n === 1 ? '' : 's'} left before you go.`;
+      locNote = n === 0 ? 'Clear to go — threshold checked!' : `${n} item${n === 1 ? '' : 's'} remaining at this door.`;
     } else {
-      locNote = pendingForCurrent === 0 ? 'Nothing waiting at this door.' : `${pendingForCurrent} item${pendingForCurrent === 1 ? '' : 's'} waiting for when you leave.`;
+      locNote = pendingForCurrent === 0 ? 'Doorway clear.' : `${pendingForCurrent} item${pendingForCurrent === 1 ? '' : 's'} queued for departure.`;
     }
 
     let proximityHtml = '';
@@ -1052,11 +1162,26 @@ body.leaving-mode .loc-icon { background: rgba(224,164,88,0.16); color: var(--am
       if (p) {
         proximityHtml = `
           <div class="proximity-banner">
-            <span>You seem to be near <strong style="color:var(--ink)">${esc(p.name)}</strong> (~${proximitySuggestion.meters}m).</span>
-            <button class="btn btn-ghost btn-sm" data-action="set-current" data-id="${p.id}">Set as current</button>
+            <span>Near <strong style="color:var(--ink)">${esc(p.name)}</strong> (~${proximitySuggestion.meters}m).</span>
+            <button class="btn btn-ghost btn-sm" data-action="set-current" data-id="${p.id}">Set as active place</button>
           </div>`;
       }
     }
+
+    let weatherBannerHtml = '';
+    if (cachedWeatherInfo && cachedWeatherInfo.isRainy && state.weatherSuggestionDismissedDate !== todayStr()) {
+      weatherBannerHtml = `
+        <div class="weather-banner">
+          <span>🌧️ Rain predicted today (${cachedWeatherInfo.prob}% chance) — Take Umbrella?</span>
+          <div style="display:flex; gap:6px;">
+            <button class="btn btn-accent btn-sm" id="btn-add-umbrella">+ Add Umbrella</button>
+            <button class="btn btn-ghost btn-sm" id="btn-dismiss-weather">Dismiss</button>
+          </div>
+        </div>
+      `;
+    }
+
+    const streakCount = state.streak?.count || 0;
 
     app.innerHTML = `
       <div class="today-head">
@@ -1067,6 +1192,13 @@ body.leaving-mode .loc-icon { background: rgba(224,164,88,0.16); color: var(--am
         <div class="today-clock">${formatClock(now)}</div>
       </div>
 
+      ${streakCount > 0 ? `
+        <div class="streak-bar">
+          <div class="streak-left"><span class="streak-fire">🔥</span> ${streakCount} Day Door Clear Streak!</div>
+          <span style="font-size:12.5px; color:var(--ink-faint);">Best: ${state.streak.maxCount || streakCount} days</span>
+        </div>` : ''}
+
+      ${weatherBannerHtml}
       ${proximityHtml}
 
       <div class="loc-card">
@@ -1074,28 +1206,32 @@ body.leaving-mode .loc-icon { background: rgba(224,164,88,0.16); color: var(--am
           <div class="loc-icon">${iconSvg(cp ? cp.icon : 'other')}</div>
           <div>
             <div class="loc-label">${leaving ? 'Leaving' : 'Now'}</div>
-            <div class="loc-name">${leaving ? `Leaving ${esc(leavingPlace?.name || '')}` : `At ${esc(cp ? cp.name : 'nowhere set')}`}</div>
+            <div class="loc-name">${leaving ? `Leaving ${esc(leavingPlace?.name || '')}` : `At ${esc(cp ? cp.name : 'No place set')}`}</div>
           </div>
         </div>
-        ${cp ? `<button class="btn ${leaving ? 'btn-ghost' : 'btn-light'}" data-action="toggle-leaving">${leaving ? 'Arrived / Cancel' : `Leaving ${esc(cp.name)}`}</button>` : `<a href="#/places" data-nav class="btn btn-light">Add a place</a>`}
+        ${cp ? `<button class="btn ${leaving ? 'btn-ghost' : 'btn-light'}" data-action="toggle-leaving">${leaving ? 'Arrived / Cancel' : `Leaving ${esc(cp.name)}`}</button>` : `<a href="#/places" data-nav class="btn btn-light">Add place</a>`}
         <div class="loc-note">${esc(locNote)}</div>
+      </div>
+
+      <div class="quick-toolbar">
+        <button class="btn btn-ghost btn-sm" id="btn-open-presets">⚡ Quick Routine Presets</button>
       </div>
 
       <div class="columns">
         <section class="col ${leaving ? 'col-hidden' : ''}" data-col="do">
           <div class="col-head"><span class="col-title">Do</span><span class="col-count">${doItems.length} open</span></div>
-          <div class="col-list">${doItems.length ? doItems.map(itemRow).join('') : '<p class="col-empty">Nothing here.</p>'}</div>
-          <button class="add-link col-add" data-action="add" data-type="do">${PLUS_SVG} Add do / alarm</button>
+          <div class="col-list">${doItems.length ? doItems.map(itemRow).join('') : '<p class="col-empty">Nothing scheduled.</p>'}</div>
+          <button class="add-link col-add" data-action="add" data-type="do">${PLUS_SVG} Add task / alarm</button>
         </section>
         <section class="col" data-col="take">
           <div class="col-head"><span class="col-title">Take</span><span class="col-count">${takeItems.length} open</span></div>
-          <div class="col-list">${takeItems.length ? takeItems.map(itemRow).join('') : '<p class="col-empty">Nothing here.</p>'}</div>
-          <button class="add-link col-add" data-action="add" data-type="take">${PLUS_SVG} Add take</button>
+          <div class="col-list">${takeItems.length ? takeItems.map(itemRow).join('') : '<p class="col-empty">Nothing to take.</p>'}</div>
+          <button class="add-link col-add" data-action="add" data-type="take">${PLUS_SVG} Add take item</button>
         </section>
         <section class="col" data-col="give">
           <div class="col-head"><span class="col-title">Give</span><span class="col-count">${giveItems.length} open</span></div>
-          <div class="col-list">${giveItems.length ? giveItems.map(itemRow).join('') : '<p class="col-empty">Nothing here.</p>'}</div>
-          <button class="add-link col-add" data-action="add" data-type="give">${PLUS_SVG} Add give</button>
+          <div class="col-list">${giveItems.length ? giveItems.map(itemRow).join('') : '<p class="col-empty">Nothing to give.</p>'}</div>
+          <button class="add-link col-add" data-action="add" data-type="give">${PLUS_SVG} Add give item</button>
         </section>
       </div>
     `;
@@ -1135,10 +1271,72 @@ body.leaving-mode .loc-icon { background: rgba(224,164,88,0.16); color: var(--am
     app.querySelectorAll('[data-action="item-menu"]').forEach((btn) => {
       btn.addEventListener('click', () => openItemMenu(btn.dataset.id));
     });
+
+    const presetBtn = app.querySelector('#btn-open-presets');
+    if (presetBtn) presetBtn.addEventListener('click', openPresetsSheet);
+
+    const addUmbrellaBtn = app.querySelector('#btn-add-umbrella');
+    if (addUmbrellaBtn) {
+      addUmbrellaBtn.addEventListener('click', () => {
+        const cp = currentPlace();
+        addItem({ type: 'take', title: 'Umbrella ☔', placeId: cp?.id || null, recurring: false });
+        state.weatherSuggestionDismissedDate = todayStr();
+        save();
+        render();
+        toast('Added Umbrella to Take list!');
+      });
+    }
+
+    const dismissWeatherBtn = app.querySelector('#btn-dismiss-weather');
+    if (dismissWeatherBtn) {
+      dismissWeatherBtn.addEventListener('click', () => {
+        state.weatherSuggestionDismissedDate = todayStr();
+        save();
+        render();
+      });
+    }
+
     const leaveBtn = app.querySelector('[data-action="toggle-leaving"]');
     if (leaveBtn) leaveBtn.addEventListener('click', toggleLeaving);
     const setCurBtn = app.querySelector('[data-action="set-current"]');
     if (setCurBtn) setCurBtn.addEventListener('click', () => { setCurrentPlace(setCurBtn.dataset.id); proximitySuggestion = null; render(); toast('Current place updated.'); });
+  }
+
+  function openPresetsSheet() {
+    const cp = currentPlace();
+    openSheet(`
+      <h3 class="sheet-title">Preset Routines</h3>
+      <p class="page-sub" style="font-size:13.5px; margin-bottom:16px;">One-tap batch presets to quickly add routine checklist items for ${esc(cp?.name || 'your current place')}.</p>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        ${ROUTINE_PRESETS.map((p) => `
+          <button class="btn btn-ghost btn-block" style="text-align:left; justify-content:space-between; padding:14px;" data-preset="${p.id}">
+            <div>
+              <strong>${esc(p.name)}</strong>
+              <div style="font-size:12px; color:var(--ink-faint); margin-top:2px;">${p.items.map(i => i.title).join(' · ')}</div>
+            </div>
+          </button>
+        `).join('')}
+      </div>
+      <div class="sheet-actions">
+        <button class="btn btn-ghost" data-x="cancel">Close</button>
+      </div>
+    `, (root) => {
+      root.querySelector('[data-x="cancel"]').addEventListener('click', closeSheet);
+      root.querySelectorAll('[data-preset]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const preset = ROUTINE_PRESETS.find(p => p.id === btn.dataset.preset);
+          if (preset) {
+            const cp = currentPlace();
+            preset.items.forEach(i => {
+              addItem({ type: i.type, title: i.title, time: i.time || null, isAlarm: i.isAlarm || false, placeId: cp?.id || null, recurring: true });
+            });
+            closeSheet();
+            render();
+            toast(`Loaded preset: ${preset.name}`);
+          }
+        });
+      });
+    });
   }
 
   function openItemMenu(id) {
@@ -1165,7 +1363,7 @@ body.leaving-mode .loc-icon { background: rgba(224,164,88,0.16); color: var(--am
       <h3 class="sheet-title">${editing ? 'Edit' : 'Add a'} ${label}</h3>
       <div class="sheet-row">
         <div class="field-label">What is it</div>
-        <input class="text-input" id="f-title" placeholder="${type === 'do' ? 'e.g. Call mechanic or Morning wake up' : type === 'take' ? 'e.g. Laptop charger' : 'e.g. Return Sarah’s book'}" value="${editing ? esc(editing.title) : ''}" />
+        <input class="text-input" id="f-title" placeholder="${type === 'do' ? 'e.g. Morning vitamins or Car service' : type === 'take' ? 'e.g. Laptop charger' : 'e.g. Return library book'}" value="${editing ? esc(editing.title) : ''}" />
       </div>
       <div class="sheet-row">
         <div class="field-label">Time (optional)</div>
@@ -1173,7 +1371,7 @@ body.leaving-mode .loc-icon { background: rgba(224,164,88,0.16); color: var(--am
       </div>
       <div class="sheet-row check-row">
         <input type="checkbox" id="f-alarm" ${editing?.isAlarm ? 'checked' : ''} />
-        <label for="f-alarm" style="color: var(--amber); font-weight:600;">Trigger sound & phone notification alarm at time</label>
+        <label for="f-alarm" style="color: var(--amber); font-weight:600;">Trigger sound & phone alert at time</label>
       </div>
       ${needsPlace ? `
       <div class="sheet-row">
@@ -1193,7 +1391,7 @@ body.leaving-mode .loc-icon { background: rgba(224,164,88,0.16); color: var(--am
       root.querySelector('[data-x="cancel"]').addEventListener('click', closeSheet);
       root.querySelector('[data-x="save"]').addEventListener('click', () => {
         const title = root.querySelector('#f-title').value.trim();
-        if (!title) { toast('Give it a name first.'); return; }
+        if (!title) { toast('Name it first.'); return; }
         const time = root.querySelector('#f-time').value || null;
         const isAlarm = root.querySelector('#f-alarm').checked;
         const placeId = needsPlace ? root.querySelector('#f-place').value : (editing?.placeId || null);
@@ -1222,11 +1420,11 @@ body.leaving-mode .loc-icon { background: rgba(224,164,88,0.16); color: var(--am
     app.innerHTML = `
       <div class="eyebrow">History Vault</div>
       <h1 class="page-title">Did I…</h1>
-      <p class="page-sub">A light archive of ticks — check whether you actually completed your alarms and door items.</p>
+      <p class="page-sub">A light archive of ticks — verify whether you actually packed your door items or completed timed tasks.</p>
 
       <div class="search-box">
         <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.6"/><path d="m20 20-3.2-3.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-        <input id="vault-search" placeholder="Search completed alarms or items" value="${esc(vaultQuery)}" />
+        <input id="vault-search" placeholder="Search completed tasks" value="${esc(vaultQuery)}" />
       </div>
       <div class="filter-row">
         ${['all', 'do', 'take', 'give'].map((f) => `<button class="chip ${vaultFilter === f ? 'active' : ''}" data-filter="${f}">${f === 'all' ? 'All' : f[0].toUpperCase() + f.slice(1)}</button>`).join('')}
@@ -1322,8 +1520,8 @@ body.leaving-mode .loc-icon { background: rgba(224,164,88,0.16); color: var(--am
         </div>
       </div>
       <div class="sheet-row">
-        <button class="btn btn-ghost btn-block" id="p-pin" type="button">${isEdit && editing.lat != null ? 'Update pin to current location' : 'Pin current location'}</button>
-        <p class="field-hint" id="p-pin-status">${isEdit && editing.lat != null ? 'Pinned — Threshold detects proximity.' : 'Optional.'}</p>
+        <button class="btn btn-ghost btn-block" id="p-pin" type="button">${isEdit && editing.lat != null ? 'Update pin location' : 'Pin current location'}</button>
+        <p class="field-hint" id="p-pin-status">${isEdit && editing.lat != null ? 'Pinned — used for weather & proximity.' : 'Optional.'}</p>
       </div>
       <div class="sheet-actions">
         <button class="btn btn-ghost" data-x="cancel">Cancel</button>
@@ -1347,6 +1545,7 @@ body.leaving-mode .loc-icon { background: rgba(224,164,88,0.16); color: var(--am
             pin = { lat: pos.coords.latitude, lng: pos.coords.longitude };
             statusEl.textContent = 'Location pinned!';
             if (!state.settings.permLocation) { state.settings.permLocation = true; save(); startGeoWatch(); }
+            checkWeatherRainForecast();
             toast('Location pinned.');
           },
           () => { statusEl.textContent = 'Permission denied or unavailable.'; },
@@ -1370,17 +1569,40 @@ body.leaving-mode .loc-icon { background: rgba(224,164,88,0.16); color: var(--am
   function renderSettings(app) {
     const s = state.settings;
     const toneVal = s.soundTone || 'synth-bell';
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
 
     app.innerHTML = `
       <div class="eyebrow">Preferences</div>
       <h1 class="page-title">Settings & Sound</h1>
 
-      ${deferredInstallPrompt ? `
-      <div class="section-card" style="border-color: var(--accent); background: rgba(139,162,212,0.08);">
-        <h2 class="section-title">Install PWA Application</h2>
-        <p class="section-sub">Add Threshold directly to your phone's home screen for full app performance and offline alarm support.</p>
-        <button class="btn btn-accent btn-block" id="btn-install-pwa">⚡ Install Threshold App</button>
-      </div>` : ''}
+      <!-- PWA Installation Section -->
+      <div class="section-card" style="border-color: var(--accent); background: rgba(139,162,212,0.06);">
+        <h2 class="section-title">📲 Install App</h2>
+        <p class="section-sub">Install Threshold on your home screen for full app performance, quick door shortcuts, and offline alarm functionality.</p>
+        
+        ${isStandalone ? `
+          <div style="background: rgba(99,179,140,0.15); color: var(--success); border:1px solid rgba(99,179,140,0.3); padding:12px 16px; border-radius:var(--radius-sm); font-size:14px; font-weight:600;">
+            ✅ Threshold is installed and running as a standalone app.
+          </div>
+        ` : deferredInstallPrompt ? `
+          <button class="btn btn-accent btn-block" id="btn-install-pwa">⚡ Install Threshold App Now</button>
+        ` : `
+          <div style="background: var(--bg-elev); border: 1px dashed var(--border); border-radius: var(--radius-sm); padding: 14px;">
+            <strong style="font-size:14px; display:block; margin-bottom:6px;">How to install on your browser:</strong>
+            <ul style="font-size: 13px; color: var(--ink-dim); padding-left: 18px; margin: 0; line-height: 1.6;">
+              <li><strong>iOS Safari:</strong> Tap the <em>Share</em> button <span style="font-size:15px;">⎋</span> and select <strong>"Add to Home Screen"</strong>.</li>
+              <li><strong>Android Chrome:</strong> Tap the menu <em>(⋮)</em> and select <strong>"Install app"</strong> or <strong>"Add to Home screen"</strong>.</li>
+            </ul>
+          </div>
+        `}
+      </div>
+
+      <!-- Physical NFC Sticker Integration -->
+      <div class="section-card">
+        <h2 class="section-title">🏷️ Physical NFC Sticker Trigger</h2>
+        <p class="section-sub">Tap your phone against a cheap physical NFC sticker placed by your front door to instantly trigger Leaving Mode.</p>
+        <button class="btn btn-ghost btn-block" id="btn-write-nfc">Write Door Trigger to NFC Tag</button>
+      </div>
 
       <div class="section-card">
         <h2 class="section-title">Profile</h2>
@@ -1389,48 +1611,48 @@ body.leaving-mode .loc-icon { background: rgba(224,164,88,0.16); color: var(--am
       </div>
 
       <div class="section-card">
-        <h2 class="section-title">Alarm Sound & Audio Tone</h2>
-        <p class="section-sub">Choose your alarm sound or pick a custom MP3/WAV tone from your phone storage.</p>
+        <h2 class="section-title">Alarm Sound Tone</h2>
+        <p class="section-sub">Select your preferred alarm ringtone or upload an MP3 sound file from your phone storage.</p>
 
         <div class="sheet-row">
-          <div class="field-label">Alarm Sound Tone</div>
+          <div class="field-label">Sound Profile</div>
           <select class="select-input" id="s-sound-tone">
             <option value="synth-bell" ${toneVal === 'synth-bell' ? 'selected' : ''}>Classic Synth Bell</option>
             <option value="synth-radar" ${toneVal === 'synth-radar' ? 'selected' : ''}>Radar Pulse</option>
             <option value="synth-soft" ${toneVal === 'synth-soft' ? 'selected' : ''}>Gentle Chime</option>
-            <option value="custom" ${toneVal === 'custom' ? 'selected' : ''}>📁 Custom File from Phone Storage</option>
+            <option value="custom" ${toneVal === 'custom' ? 'selected' : ''}>📁 Custom Audio File</option>
           </select>
         </div>
 
         <div id="custom-sound-box" style="margin-top: 14px; ${toneVal === 'custom' ? 'display:block;' : 'display:none;'} background: var(--bg-elev); border: 1px dashed var(--border); border-radius: var(--radius-sm); padding: 14px;">
-          <div class="field-label" style="margin-bottom: 6px;">Select Audio File</div>
-          <p style="font-size: 12.5px; color: var(--ink-faint); margin: 0 0 10px;">Select an MP3, WAV, OGG, or M4A file from your phone.</p>
+          <div class="field-label" style="margin-bottom: 6px;">Audio File</div>
+          <p style="font-size: 12.5px; color: var(--ink-faint); margin: 0 0 10px;">Pick an MP3 or WAV file from your phone.</p>
           <input type="file" id="s-custom-file-input" accept="audio/*" style="display:none;" />
           <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-            <button class="btn btn-ghost btn-sm" id="s-btn-choose-file" type="button">📂 Choose Audio File</button>
+            <button class="btn btn-ghost btn-sm" id="s-btn-choose-file" type="button">📂 Select Audio File</button>
             <span style="font-size: 13px; color: var(--ink-dim);" id="s-custom-filename">${s.customSoundName ? esc(s.customSoundName) : 'No file selected'}</span>
           </div>
         </div>
 
         <div style="margin-top: 16px;">
-          <button class="btn btn-ghost btn-sm" id="s-test-sound-btn" type="button">▶ Test Selected Sound</button>
+          <button class="btn btn-ghost btn-sm" id="s-test-sound-btn" type="button">▶ Test Sound Tone</button>
         </div>
       </div>
 
       <div class="section-card">
-        <h2 class="section-title">App Permissions</h2>
-        <p class="section-sub">Threshold requests location and notifications to send phone reminders and detect when you leave bases.</p>
+        <h2 class="section-title">Permissions</h2>
+        <p class="section-sub">Threshold uses notifications and location to alert you when leaving door locations.</p>
 
         <div class="toggle-row">
-          <div class="toggle-copy"><strong>Location Access</strong><span>Detect when you are near pinned bases.</span></div>
+          <div class="toggle-copy"><strong>Location Access</strong><span>Detect when near pinned bases.</span></div>
           <button class="switch ${s.permLocation ? 'on' : ''}" id="s-loc" role="switch"></button>
         </div>
         <div class="toggle-row">
-          <div class="toggle-copy"><strong>Notifications & Reminders</strong><span>Timed alarm sound and system notifications.</span></div>
+          <div class="toggle-copy"><strong>Notifications & Reminders</strong><span>System alert sound and lockscreen notifications.</span></div>
           <button class="switch ${s.permReminders ? 'on' : ''}" id="s-rem" role="switch"></button>
         </div>
         <div class="toggle-row">
-          <div class="toggle-copy"><strong>Haptics / Vibration</strong><span>Vibrate phone when alarm triggers or items complete.</span></div>
+          <div class="toggle-copy"><strong>Haptics / Vibration</strong><span>Vibrate phone when alarm fires or items complete.</span></div>
           <button class="switch ${s.permHaptics ? 'on' : ''}" id="s-hap" role="switch"></button>
         </div>
 
@@ -1463,6 +1685,9 @@ body.leaving-mode .loc-icon { background: rgba(224,164,88,0.16); color: var(--am
       }
     }
 
+    const nfcBtn = app.querySelector('#btn-write-nfc');
+    if (nfcBtn) nfcBtn.addEventListener('click', writeNFCTag);
+
     const soundSelect = app.querySelector('#s-sound-tone');
     const customBox = app.querySelector('#custom-sound-box');
     const chooseFileBtn = app.querySelector('#s-btn-choose-file');
@@ -1482,8 +1707,8 @@ body.leaving-mode .loc-icon { background: rgba(224,164,88,0.16); color: var(--am
       const file = e.target.files && e.target.files[0];
       if (!file) return;
 
-      if (file.size > 8 * 1024 * 1024) { // Max ~8MB check for localStorage capacity
-        toast('File is too large. Please select an audio file under 8MB.');
+      if (file.size > 8 * 1024 * 1024) {
+        toast('Please select an audio file under 8MB.');
         return;
       }
 
@@ -1499,15 +1724,11 @@ body.leaving-mode .loc-icon { background: rgba(224,164,88,0.16); color: var(--am
         toast(`Loaded tone: ${file.name}`);
         previewAlarmSound();
       };
-      reader.onerror = function() {
-        toast('Could not read audio file.');
-      };
+      reader.onerror = function() { toast('Could not read audio file.'); };
       reader.readAsDataURL(file);
     });
 
-    testSoundBtn.addEventListener('click', () => {
-      previewAlarmSound();
-    });
+    testSoundBtn.addEventListener('click', () => previewAlarmSound());
 
     app.querySelector('#s-name').addEventListener('change', (e) => { state.settings.name = e.target.value.trim(); save(); });
     app.querySelector('#s-loc').addEventListener('click', async () => {
@@ -1589,12 +1810,15 @@ body.leaving-mode .loc-icon { background: rgba(224,164,88,0.16); color: var(--am
     applyLeavingClass();
     render();
 
-    // Show initial permission request on first load
     showInitialPermissionPromptIfNeeded();
 
-    if (state.settings.permLocation) startGeoWatch();
+    if (state.settings.permLocation) {
+      startGeoWatch();
+      checkWeatherRainForecast();
+    }
 
-    // High frequency interval (every second) to accurately trigger alarms at the exact minute
+    initNFCListener();
+
     setInterval(() => {
       ensureDailyReset();
       checkScheduledAlarms();
