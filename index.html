@@ -2,455 +2,299 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-<title>Threshold - Routine & Task Manager</title>
-<meta name="description" content="A day-of task and routine manager organized around the doors you walk through." />
-<meta name="theme-color" content="#1a1512" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Threshold — Door & Alarm Reminder</title>
+<meta name="description" content="A location-aware task, door reminder, and functional alarm manager." />
+<meta name="theme-color" content="#0b0e14" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
-/* ---------- Color Palette & Tokens (Brown, Sage Green, Peach/White) ---------- */
 :root {
-  --bg: #1c1714;
-  --bg-elev: #241e1a;
-  --card: #2a231f;
-  --card-2: #332b26;
-  --border: rgba(232, 214, 196, 0.12);
-  --border-soft: rgba(232, 214, 196, 0.07);
-  
-  --ink: #f9f5f0;
-  --ink-dim: #c5b9ac;
-  --ink-faint: #8a7c6f;
-  
-  --sage: #8b9a7d;
-  --sage-dark: #6e7d60;
-  --sage-ink: #141a10;
-  --sage-glow: rgba(139, 154, 125, 0.18);
-  
-  --peach: #e3a982;
-  --peach-ink: #1f140d;
-  --peach-glow: rgba(227, 169, 130, 0.15);
-  
-  --amber: #d99355;
-  --amber-ink: #1a1109;
-  
-  --danger: #d9786c;
-  
-  --radius-lg: 22px;
+  --bg: #0b0e14;
+  --bg-elev: #10141d;
+  --card: #131826;
+  --card-2: #161c2c;
+  --border: rgba(168,181,209,0.14);
+  --border-soft: rgba(168,181,209,0.09);
+  --ink: #e9e7df;
+  --ink-dim: #a9afc0;
+  --ink-faint: #6d7488;
+  --accent: #8ba2d4;
+  --accent-ink: #0b0e14;
+  --amber: #e0a458;
+  --amber-ink: #1a1206;
+  --amber-glow: rgba(224,164,88,0.14);
+  --danger: #d98a7c;
+  --success: #63b38c;
+  --radius-lg: 20px;
   --radius-md: 14px;
   --radius-sm: 10px;
-  
   --serif: 'Fraunces', Georgia, serif;
-  --sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  
-  --shadow: 0 12px 36px rgba(0,0,0,0.45);
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --shadow: 0 10px 30px rgba(0,0,0,0.35);
   --dur: 220ms;
-  --ease: cubic-bezier(.2, .8, .2, 1);
+  --ease: cubic-bezier(.2,.7,.2,1);
 }
 
 * { box-sizing: border-box; }
-html, body { height: 100%; margin: 0; padding: 0; }
-
+html, body { height: 100%; margin: 0; }
 body {
-  background: radial-gradient(1200px 700px at 50% -10%, #2e2520 0%, var(--bg) 60%);
+  background: radial-gradient(1200px 600px at 50% -10%, #131a29 0%, var(--bg) 55%);
   color: var(--ink);
   font-family: var(--sans);
   -webkit-font-smoothing: antialiased;
   transition: background var(--dur) var(--ease);
-  overflow-x: hidden;
-  padding-bottom: env(safe-area-inset-bottom);
 }
-
 body.leaving-mode {
-  background: radial-gradient(1200px 700px at 50% -10%, #3a2214 0%, #1c120c 60%);
+  background: radial-gradient(1200px 600px at 50% -10%, #241a0c 0%, #14100a 55%);
 }
-
 a { color: inherit; text-decoration: none; }
 button, input, select { font-family: inherit; }
-::selection { background: var(--sage); color: var(--sage-ink); }
+::selection { background: var(--accent); color: var(--accent-ink); }
 
-/* ---------- Top Navigation (Desktop & Mobile Header) ---------- */
 .topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 18px clamp(16px, 4vw, 40px);
-  max-width: 1100px;
-  margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 22px clamp(16px, 4vw, 48px) 16px;
+  max-width: 1180px; margin: 0 auto;
 }
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand-mark { width: 22px; height: 22px; color: var(--accent); }
+.brand-name { font-family: var(--serif); font-size: 21px; letter-spacing: .01em; }
 
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--peach);
-}
-.brand-mark { width: 22px; height: 22px; }
-.brand-name { font-family: var(--serif); font-size: 22px; font-weight: 600; letter-spacing: 0.01em; color: var(--ink); }
-
-/* Top tabs for desktop */
-.tabs-desktop {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(255, 255, 255, 0.03);
+.tabs {
+  display: flex; align-items: center; gap: 4px;
+  background: rgba(255,255,255,0.03);
   border: 1px solid var(--border-soft);
   border-radius: 999px;
   padding: 4px;
 }
-.tabs-desktop a {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13.5px;
-  font-weight: 500;
-  color: var(--ink-dim);
-  padding: 8px 16px;
-  border-radius: 999px;
-  transition: all var(--dur) var(--ease);
+.tabs a {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 13.5px; color: var(--ink-dim);
+  padding: 8px 14px; border-radius: 999px;
+  transition: color var(--dur) var(--ease), background var(--dur) var(--ease);
 }
-.tabs-desktop a:hover { color: var(--ink); }
-.tabs-desktop a.active { background: var(--sage); color: var(--sage-ink); font-weight: 600; }
-body.leaving-mode .tabs-desktop a.active { background: var(--peach); color: var(--peach-ink); }
-.tab-ico { width: 16px; height: 16px; flex-shrink: 0; }
-
-/* Bottom navigation for mobile */
-.bottom-nav {
-  display: none;
-  position: fixed;
-  bottom: 0; left: 0; right: 0;
-  background: rgba(36, 30, 26, 0.92);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-top: 1px solid var(--border-soft);
-  padding: 8px 12px calc(8px + env(safe-area-inset-bottom));
-  z-index: 40;
-  justify-content: space-around;
-}
-
-.bottom-nav a {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--ink-faint);
-  padding: 6px 12px;
-  border-radius: 12px;
-  transition: color var(--dur) var(--ease);
-}
-.bottom-nav a.active { color: var(--sage); }
-body.leaving-mode .bottom-nav a.active { color: var(--peach); }
-.bottom-nav .tab-ico { width: 20px; height: 20px; }
+.tab-ico { width: 15px; height: 15px; flex: 0 0 auto; }
+.tabs a:hover { color: var(--ink); }
+.tabs a.active { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+body.leaving-mode .tabs a.active { background: var(--amber); color: var(--amber-ink); }
 
 @media (max-width: 720px) {
-  .tabs-desktop { display: none; }
-  .bottom-nav { display: flex; }
-  .app { padding-bottom: 110px !important; }
+  .tabs a span, .tabs a .tab-label { display: none; }
+  .brand-name { font-size: 19px; }
+  .tabs a { padding: 9px 11px; }
 }
 
-/* ---------- App Layout ---------- */
 .app {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 8px clamp(16px, 4vw, 40px) 100px;
-  min-height: 65vh;
+  max-width: 1180px; margin: 0 auto;
+  padding: 8px clamp(16px, 4vw, 48px) 120px;
+  min-height: 60vh;
 }
-
 .eyebrow {
-  font-size: 11.5px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--sage);
-  font-weight: 700;
-  margin: 16px 0 6px;
+  font-size: 12px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--ink-faint); font-weight: 600; margin: 18px 0 6px;
 }
-body.leaving-mode .eyebrow { color: var(--peach); }
-
 .page-title {
-  font-family: var(--serif);
-  font-weight: 500;
-  font-size: clamp(28px, 4vw, 38px);
+  font-family: var(--serif); font-weight: 500;
+  font-size: clamp(30px, 4vw, 40px);
   margin: 0 0 8px;
 }
-.page-sub {
-  color: var(--ink-dim);
-  font-size: 14.5px;
-  max-width: 620px;
-  line-height: 1.5;
-  margin: 0 0 24px;
-}
+.page-sub { color: var(--ink-dim); font-size: 15px; max-width: 640px; line-height: 1.55; margin: 0 0 26px; }
 
-/* ---------- Today View ---------- */
 .today-head {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-  margin: 12px 0 20px;
+  display: flex; align-items: flex-end; justify-content: space-between; gap: 16px;
+  flex-wrap: wrap; margin: 18px 0 22px;
 }
-.today-date {
-  font-size: 12px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
-  font-weight: 700;
-}
-.today-greet {
-  font-family: var(--serif);
-  font-weight: 500;
-  font-size: clamp(28px, 4.5vw, 38px);
-  margin-top: 4px;
-}
-.today-clock {
-  font-family: var(--serif);
-  font-size: 26px;
-  color: var(--ink-dim);
-  font-variant-numeric: tabular-nums;
-}
+.today-date { font-size: 12.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-faint); font-weight: 600; }
+.today-greet { font-family: var(--serif); font-weight: 500; font-size: clamp(28px, 4vw, 38px); margin-top: 4px; }
+.today-clock { font-family: var(--serif); font-size: 28px; color: var(--accent); font-variant-numeric: tabular-nums; font-weight: 600; }
 
-/* ---------- Location Card ---------- */
+.permission-modal-overlay {
+  position: fixed; inset: 0; background: rgba(5,7,12,0.85); backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px;
+}
+.permission-card {
+  background: var(--bg-elev); border: 1px solid var(--accent); border-radius: 24px;
+  padding: 28px; max-width: 460px; width: 100%; box-shadow: var(--shadow); text-align: center;
+}
+.permission-icon {
+  width: 56px; height: 56px; border-radius: 18px; background: rgba(139,162,212,0.15);
+  color: var(--accent); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 16px;
+}
+.permission-icon svg { width: 28px; height: 28px; }
+
 .loc-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 20px 22px;
-  margin-bottom: 22px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.2);
-  transition: all var(--dur) var(--ease);
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: 20px 22px; margin-bottom: 22px;
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease);
 }
 body.leaving-mode .loc-card {
-  background: linear-gradient(180deg, var(--peach-glow), transparent 70%), var(--card);
-  border-color: rgba(227, 169, 130, 0.35);
+  background: linear-gradient(180deg, var(--amber-glow), transparent 70%), var(--card);
+  border-color: rgba(224,164,88,0.35);
 }
-
 .loc-left { display: flex; align-items: center; gap: 14px; }
 .loc-icon {
-  width: 46px; height: 46px;
-  border-radius: 14px;
-  display: flex; align-items: center; justify-content: center;
-  background: var(--sage-glow);
-  color: var(--sage);
-  flex-shrink: 0;
+  width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+  background: rgba(168,181,209,0.10); color: var(--accent); flex: 0 0 auto;
 }
-body.leaving-mode .loc-icon { background: var(--peach-glow); color: var(--peach); }
-.loc-icon svg { width: 22px; height: 22px; }
+body.leaving-mode .loc-icon { background: rgba(224,164,88,0.16); color: var(--amber); }
+.loc-icon svg { width: 20px; height: 20px; }
+.loc-label { font-size: 11.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-faint); font-weight: 600; }
+.loc-name { font-family: var(--serif); font-size: 21px; margin-top: 2px; }
+.loc-note { width: 100%; color: var(--ink-faint); font-size: 13.5px; margin-top: 4px; }
 
-.loc-label {
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
-  font-weight: 700;
-}
-.loc-name { font-family: var(--serif); font-size: 22px; margin-top: 2px; }
-.loc-note { width: 100%; color: var(--ink-faint); font-size: 13.5px; margin-top: 2px; }
-
-/* ---------- Buttons ---------- */
 .btn {
-  border: none;
-  cursor: pointer;
-  border-radius: 999px;
-  font-weight: 600;
-  font-size: 14px;
-  padding: 11px 20px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: transform var(--dur) var(--ease), background var(--dur) var(--ease), opacity var(--dur) var(--ease);
+  border: none; cursor: pointer; border-radius: 999px; font-weight: 600; font-size: 14px;
+  padding: 11px 20px; transition: transform var(--dur) var(--ease), background var(--dur) var(--ease), opacity var(--dur) var(--ease);
 }
 .btn:active { transform: scale(0.96); }
-
-.btn-primary { background: var(--sage); color: var(--sage-ink); }
-.btn-primary:hover { opacity: 0.92; }
-body.leaving-mode .btn-primary { background: var(--peach); color: var(--peach-ink); }
-
-.btn-light { background: var(--ink); color: #1c1714; }
-.btn-light:hover { opacity: 0.92; }
-
+.btn-light { background: var(--ink); color: #0c0e14; }
+.btn-light:hover { opacity: .9; }
+.btn-accent { background: var(--accent); color: var(--accent-ink); }
+.btn-amber { background: var(--amber); color: var(--amber-ink); }
 .btn-ghost { background: transparent; color: var(--ink-dim); border: 1px solid var(--border); }
-.btn-ghost:hover { color: var(--ink); border-color: var(--sage); }
-
-.btn-danger { background: transparent; color: var(--danger); border: 1px solid rgba(217,120,108,0.35); }
-.btn-danger:hover { background: rgba(217,120,108,0.1); }
-
+.btn-ghost:hover { color: var(--ink); border-color: var(--accent); }
+.btn-danger { background: transparent; color: var(--danger); border: 1px solid rgba(217,138,124,0.4); }
+.btn-danger:hover { background: rgba(217,138,124,0.08); }
 .btn-sm { padding: 8px 14px; font-size: 13px; }
 .btn-block { width: 100%; }
 
 .proximity-banner {
   display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
-  background: var(--sage-glow); border: 1px dashed var(--sage); border-radius: var(--radius-md);
-  padding: 12px 16px; margin-bottom: 18px; font-size: 13.5px; color: var(--ink);
+  background: rgba(139,162,212,0.08); border: 1px dashed var(--border); border-radius: var(--radius-md);
+  padding: 12px 16px; margin-bottom: 18px; font-size: 13.5px; color: var(--ink-dim);
 }
 
-/* ---------- Columns Layout (Do / Take / Give) ---------- */
 .columns {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px;
 }
-@media (max-width: 900px) {
-  .columns { grid-template-columns: 1fr; }
-}
+@media (max-width: 900px) { .columns { grid-template-columns: 1fr; } }
 
 .col {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 18px;
-  display: flex;
-  flex-direction: column;
-  min-height: 200px;
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: 18px 18px 16px; display: flex; flex-direction: column; min-height: 220px;
   transition: opacity var(--dur) var(--ease), transform var(--dur) var(--ease);
 }
 .col.col-hidden {
-  display: none !important;
+  opacity: 0; transform: translateY(4px); pointer-events: none; position: absolute; visibility: hidden;
 }
-
 .col-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
-.col-title { font-family: var(--serif); font-size: 21px; font-weight: 600; }
-.col-count { font-size: 12px; color: var(--ink-faint); font-weight: 600; }
-.col-empty { color: var(--ink-faint); font-size: 13.5px; padding: 12px 2px 18px; }
+.col-title { font-family: var(--serif); font-size: 21px; }
+.col-count { font-size: 12.5px; color: var(--ink-faint); }
+.col-empty { color: var(--ink-faint); font-size: 14px; padding: 10px 2px 18px; }
 .col-list { display: flex; flex-direction: column; gap: 8px; flex: 1; }
 
 .add-link {
-  display: flex; align-items: center; gap: 7px; color: var(--sage); font-size: 13.5px; font-weight: 600;
-  background: none; border: none; cursor: pointer; padding: 8px 2px; margin-top: 10px; align-self: flex-start;
+  display: flex; align-items: center; gap: 7px; color: var(--ink-dim); font-size: 13.5px; font-weight: 600;
+  background: none; border: none; cursor: pointer; padding: 8px 2px; align-self: flex-start;
 }
-body.leaving-mode .add-link { color: var(--peach); }
-.add-link:hover { opacity: 0.8; }
-.add-link svg { width: 15px; height: 15px; }
+.add-link:hover { color: var(--accent); }
+.add-link svg { width: 14px; height: 14px; }
 
-/* ---------- Item Cards ---------- */
 .item {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  background: var(--card-2);
-  border: 1px solid var(--border-soft);
-  border-radius: var(--radius-md);
-  padding: 12px 14px;
+  display: flex; align-items: flex-start; gap: 12px;
+  background: var(--card-2); border: 1px solid var(--border-soft); border-radius: var(--radius-md);
+  padding: 12px 12px; position: relative; overflow: hidden;
   transition: transform var(--dur) var(--ease), opacity var(--dur) var(--ease);
 }
-.item.completing { transform: scale(0.96); opacity: 0; }
-
+.item.completing { transform: scale(0.97); opacity: 0; }
 .item-check {
-  width: 22px; height: 22px;
-  border-radius: 50%;
-  border: 1.8px solid var(--ink-faint);
-  background: transparent;
-  cursor: pointer;
-  flex-shrink: 0;
-  margin-top: 1px;
-  display: flex; align-items: center; justify-content: center;
-  transition: all var(--dur) var(--ease);
-  color: var(--sage-ink);
+  width: 22px; height: 22px; border-radius: 50%; border: 1.6px solid var(--ink-faint);
+  background: transparent; cursor: pointer; flex: 0 0 auto; margin-top: 1px;
+  display: flex; align-items: center; justify-content: center; transition: all var(--dur) var(--ease);
 }
-.item-check:hover { border-color: var(--sage); background: rgba(139, 154, 125, 0.15); }
-body.leaving-mode .item-check:hover { border-color: var(--peach); }
+.item-check:hover { border-color: var(--accent); }
 .item-check svg { width: 12px; height: 12px; opacity: 0; transition: opacity var(--dur); }
-
 .item-body { flex: 1; min-width: 0; }
-.item-title { margin: 0; font-size: 14.5px; font-weight: 500; line-height: 1.4; }
-.item-meta { margin: 4px 0 0; font-size: 12px; color: var(--ink-faint); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.item-title { margin: 0; font-size: 14.5px; line-height: 1.4; }
+.item-meta { margin: 3px 0 0; font-size: 12px; color: var(--ink-faint); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .item-tag {
-  display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600;
-  background: rgba(232, 214, 196, 0.08); color: var(--peach);
+  display: inline-flex; align-items: center; padding: 1px 7px; border-radius: 999px; font-size: 11px;
+  background: rgba(168,181,209,0.10); color: var(--ink-dim);
+}
+.item-tag.alarm-tag {
+  background: rgba(224,164,88,0.15); color: var(--amber); font-weight: 600;
 }
 .item-menu {
-  background: none; border: none; color: var(--ink-faint); cursor: pointer; font-size: 18px; line-height: 1;
-  padding: 2px 6px; border-radius: 6px; flex-shrink: 0;
+  background: none; border: none; color: var(--ink-faint); cursor: pointer; font-size: 16px; line-height: 1;
+  padding: 4px 6px; border-radius: 8px; flex: 0 0 auto;
 }
 .item-menu:hover { color: var(--ink); background: rgba(255,255,255,0.06); }
 
-/* ---------- Vault (History) ---------- */
+.alarm-overlay {
+  position: fixed; inset: 0; background: rgba(15,10,5,0.92); backdrop-filter: blur(12px);
+  display: flex; align-items: center; justify-content: center; z-index: 200; padding: 20px;
+  animation: alarmPulse 1.5s infinite alternate;
+}
+@keyframes alarmPulse {
+  from { background: rgba(15,10,5,0.92); }
+  to { background: rgba(45,20,10,0.95); }
+}
+.alarm-modal {
+  background: #1c1510; border: 2px solid var(--amber); border-radius: 28px;
+  padding: 32px; max-width: 440px; width: 100%; text-align: center; box-shadow: 0 0 50px rgba(224,164,88,0.3);
+}
+.alarm-bell {
+  width: 64px; height: 64px; border-radius: 50%; background: var(--amber); color: var(--amber-ink);
+  display: inline-flex; align-items: center; justify-content: center; margin-bottom: 20px;
+  animation: ring 0.5s infinite alternate ease-in-out;
+}
+@keyframes ring {
+  0% { transform: rotate(-15deg) scale(1); }
+  100% { transform: rotate(15deg) scale(1.1); }
+}
+
 .search-box {
   display: flex; align-items: center; gap: 10px;
   background: var(--card); border: 1px solid var(--border); border-radius: 999px;
-  padding: 12px 18px; margin-bottom: 16px;
+  padding: 13px 18px; margin-bottom: 16px;
 }
-.search-box svg { width: 16px; height: 16px; color: var(--ink-faint); flex-shrink: 0; }
+.search-box svg { width: 16px; height: 16px; color: var(--ink-faint); flex: 0 0 auto; }
 .search-box input {
   background: none; border: none; outline: none; color: var(--ink); font-size: 14.5px; width: 100%;
 }
-.search-box input::placeholder { color: var(--ink-faint); }
-
 .filter-row { display: flex; gap: 8px; margin-bottom: 22px; flex-wrap: wrap; }
 .chip {
   border: 1px solid var(--border); background: transparent; color: var(--ink-dim);
-  border-radius: 999px; padding: 7px 16px; font-size: 13px; cursor: pointer; font-weight: 600;
+  border-radius: 999px; padding: 8px 16px; font-size: 13.5px; cursor: pointer; font-weight: 600;
   transition: all var(--dur) var(--ease);
 }
-.chip.active { background: var(--sage); color: var(--sage-ink); border-color: var(--sage); }
-
-.empty-panel {
-  border: 1px dashed var(--border); border-radius: var(--radius-lg);
-  padding: 50px 20px; text-align: center; color: var(--ink-faint);
-}
-.empty-panel .empty-icon { width: 36px; height: 36px; margin: 0 auto 14px; opacity: 0.6; }
+.chip.active { background: var(--ink); color: #0c0e14; border-color: var(--ink); }
 
 .vault-day { margin-bottom: 22px; }
-.vault-day-label { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--sage); font-weight: 700; margin-bottom: 10px; }
+.vault-day-label { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); font-weight: 700; margin-bottom: 10px; }
 .vault-list { display: flex; flex-direction: column; gap: 8px; }
 .vault-row {
   display: flex; align-items: center; gap: 12px;
   background: var(--card); border: 1px solid var(--border-soft); border-radius: var(--radius-md);
-  padding: 12px 16px;
+  padding: 12px 14px;
 }
 .vault-check {
-  width: 20px; height: 20px; border-radius: 50%; background: var(--sage); color: var(--sage-ink);
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 20px; height: 20px; border-radius: 50%; background: var(--accent); color: var(--accent-ink);
+  display: flex; align-items: center; justify-content: center; flex: 0 0 auto;
 }
 .vault-check svg { width: 11px; height: 11px; }
-.vault-row-title { font-size: 14px; font-weight: 500; }
+.vault-row-title { font-size: 14px; }
 .vault-row-meta { font-size: 12px; color: var(--ink-faint); margin-top: 2px; }
 .vault-row-time { margin-left: auto; font-size: 12px; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
 
-/* ---------- Places View ---------- */
-.place-row {
-  display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
-  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg);
-  padding: 18px 20px; margin-bottom: 12px;
-}
-.place-left { display: flex; align-items: center; gap: 14px; }
-.place-icon {
-  width: 44px; height: 44px; border-radius: 12px; background: var(--sage-glow); color: var(--sage);
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-}
-.place-icon svg { width: 20px; height: 20px; }
-.place-name { font-family: var(--serif); font-size: 19px; font-weight: 500; }
-.place-sub { font-size: 12.5px; color: var(--ink-faint); margin-top: 2px; }
-.place-actions { display: flex; gap: 8px; }
-
-/* ---------- Settings View ---------- */
 .section-card {
   background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg);
   padding: 22px 24px; margin-bottom: 18px;
 }
-.section-title { font-family: var(--serif); font-size: 21px; margin: 0 0 6px; }
+.section-title { font-family: var(--serif); font-size: 22px; margin: 0 0 6px; }
 .section-sub { color: var(--ink-dim); font-size: 13.5px; line-height: 1.5; margin: 0 0 18px; }
 
-.field-label { font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); font-weight: 700; margin-bottom: 8px; }
+.field-label { font-size: 11.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); font-weight: 700; margin-bottom: 8px; }
 .text-input, .time-input, .select-input {
   width: 100%; background: var(--bg-elev); border: 1px solid var(--border); color: var(--ink);
-  border-radius: var(--radius-sm); padding: 12px 15px; font-size: 14.5px; outline: none;
+  border-radius: var(--radius-sm); padding: 13px 16px; font-size: 14.5px; outline: none;
   transition: border-color var(--dur);
 }
-.text-input:focus, .time-input:focus, .select-input:focus { border-color: var(--sage); }
-.text-input::placeholder { color: var(--ink-faint); }
+.text-input:focus, .time-input:focus, .select-input:focus { border-color: var(--accent); }
 .field-hint { font-size: 12.5px; color: var(--ink-faint); margin-top: 8px; line-height: 1.5; }
 
 .toggle-row {
@@ -462,97 +306,82 @@ body.leaving-mode .item-check:hover { border-color: var(--peach); }
 .toggle-copy span { font-size: 12.5px; color: var(--ink-faint); display: block; margin-top: 2px; max-width: 420px; }
 
 .switch {
-  position: relative; width: 44px; height: 26px; flex-shrink: 0; border-radius: 999px;
+  position: relative; width: 44px; height: 26px; flex: 0 0 auto; border-radius: 999px;
   background: rgba(255,255,255,0.12); border: none; cursor: pointer; transition: background var(--dur);
 }
 .switch::after {
   content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%;
-  background: #d8ceca; transition: transform var(--dur) var(--ease);
+  background: #cfd3dd; transition: transform var(--dur) var(--ease);
 }
-.switch.on { background: var(--sage); }
-.switch.on::after { transform: translateX(18px); background: var(--sage-ink); }
+.switch.on { background: var(--accent); }
+.switch.on::after { transform: translateX(18px); background: #0c0e14; }
 
-.footer-tag { text-align: center; color: var(--ink-faint); font-size: 12.5px; margin: 34px 0 20px; }
-
-/* ---------- Quick Add FAB (Functional Floating Action Button) ---------- */
-.fab {
-  position: fixed;
-  right: 22px;
-  bottom: clamp(22px, 8vw, 84px);
-  width: 58px;
-  height: 58px;
-  border-radius: 50%;
-  background: var(--sage);
-  color: var(--sage-ink);
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-  transition: transform var(--dur) var(--ease), background var(--dur) var(--ease);
-  z-index: 35;
+.place-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: 18px 20px; margin-bottom: 12px;
 }
-.fab svg { width: 24px; height: 24px; }
-.fab:hover { transform: scale(1.06); }
-.fab:active { transform: scale(0.94); }
-body.leaving-mode .fab { background: var(--peach); color: var(--peach-ink); }
+.place-left { display: flex; align-items: center; gap: 14px; }
+.place-icon {
+  width: 44px; height: 44px; border-radius: 12px; background: rgba(168,181,209,0.10); color: var(--accent);
+  display: flex; align-items: center; justify-content: center; flex: 0 0 auto;
+}
+.place-icon svg { width: 20px; height: 20px; }
+.place-name { font-family: var(--serif); font-size: 18.5px; }
+.place-sub { font-size: 12.5px; color: var(--ink-faint); margin-top: 2px; }
 
-/* ---------- Bottom Sheet Modal ---------- */
 .sheet-overlay {
-  position: fixed; inset: 0; background: rgba(12, 10, 8, 0.72); backdrop-filter: blur(4px);
-  display: flex; align-items: flex-end; justify-content: center; z-index: 60;
+  position: fixed; inset: 0; background: rgba(6,8,12,0.65); backdrop-filter: blur(4px);
+  display: flex; align-items: flex-end; justify-content: center; z-index: 50;
   animation: fadeIn var(--dur) var(--ease);
 }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
 .sheet {
-  width: 100%; max-width: 500px; background: var(--bg-elev); border: 1px solid var(--border);
-  border-bottom: none; border-radius: 24px 24px 0 0; padding: 22px 22px calc(24px + env(safe-area-inset-bottom));
-  animation: slideUp var(--dur) var(--ease); max-height: 88vh; overflow-y: auto;
+  width: 100%; max-width: 480px; background: var(--bg-elev); border: 1px solid var(--border);
+  border-bottom: none; border-radius: 22px 22px 0 0; padding: 22px 22px 28px;
+  animation: slideUp var(--dur) var(--ease); max-height: 86vh; overflow-y: auto;
 }
 @media (min-width: 640px) {
   .sheet-overlay { align-items: center; }
-  .sheet { border-radius: var(--radius-lg); border-bottom: 1px solid var(--border); padding-bottom: 24px; }
+  .sheet { border-radius: var(--radius-lg); border-bottom: 1px solid var(--border); }
 }
-@keyframes slideUp { from { transform: translateY(28px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(24px); opacity: 0; } to { transform: none; opacity: 1; } }
 
 .sheet-title { font-family: var(--serif); font-size: 22px; margin: 0 0 18px; }
-.sheet-row { margin-bottom: 16px; }
-.sheet-actions { display: flex; gap: 10px; margin-top: 20px; }
+.sheet-row { margin-bottom: 14px; }
+.sheet-actions { display: flex; gap: 10px; margin-top: 18px; }
 .sheet-actions .btn { flex: 1; }
-
 .seg { display: flex; gap: 6px; background: var(--bg); border: 1px solid var(--border); border-radius: 999px; padding: 4px; }
 .seg button {
   flex: 1; border: none; background: transparent; color: var(--ink-dim); padding: 9px 10px; border-radius: 999px;
   font-size: 13.5px; font-weight: 600; cursor: pointer; transition: all var(--dur);
 }
-.seg button.active { background: var(--sage); color: var(--sage-ink); }
-
+.seg button.active { background: var(--ink); color: #0c0e14; }
 .check-row { display: flex; align-items: center; gap: 10px; padding: 4px 0; }
-.check-row input { width: 18px; height: 18px; accent-color: var(--sage); }
-.check-row label { font-size: 13.5px; color: var(--ink-dim); cursor: pointer; }
+.check-row input { width: 16px; height: 16px; accent-color: var(--accent); }
+.check-row label { font-size: 13.5px; color: var(--ink-dim); }
 
-/* ---------- Toasts ---------- */
 .toast-root {
-  position: fixed; top: 16px; left: 50%; transform: translateX(-50%); z-index: 90;
+  position: fixed; top: 16px; left: 50%; transform: translateX(-50%); z-index: 80;
   display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none;
 }
 .toast {
-  background: var(--ink); color: #1c1714; padding: 11px 20px; border-radius: 999px; font-size: 13.5px; font-weight: 600;
+  background: var(--ink); color: #0c0e14; padding: 11px 18px; border-radius: 999px; font-size: 13.5px; font-weight: 600;
   box-shadow: var(--shadow); animation: toastIn var(--dur) var(--ease);
 }
-@keyframes toastIn { from { transform: translateY(-10px); opacity: 0; } to { transform: none; opacity: 1; } }
-
-.stack { display: flex; flex-direction: column; gap: 10px; }
-.row-between { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+@keyframes toastIn { from { transform: translateY(-8px); opacity: 0; } to { transform: none; opacity: 1; } }
 </style>
 </head>
 <body>
 
 <div id="toast-root" class="toast-root" aria-live="polite"></div>
 
-<!-- Topbar Header -->
+<!-- Initial Permissions Setup Modal -->
+<div id="perm-modal-root"></div>
+
+<!-- Active Alarm Alert Overlay Root -->
+<div id="alarm-root"></div>
+
 <header class="topbar">
   <a class="brand" href="#/" data-nav>
     <svg class="brand-mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -563,54 +392,23 @@ body.leaving-mode .fab { background: var(--peach); color: var(--peach-ink); }
     </svg>
     <span class="brand-name">Threshold</span>
   </a>
-
-  <nav class="tabs-desktop" aria-label="Primary Desktop">
-    <a href="#/" data-nav data-route="/"><svg class="tab-ico" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.8"/><path d="M12 2.5V5M12 19v2.5M4.5 12H2M22 12h-2.5M5.4 5.4l1.6 1.6M17 17l1.6 1.6M18.6 5.4 17 7M7 17l-1.6 1.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Today</a>
-    <a href="#/history" data-nav data-route="/history"><svg class="tab-ico" viewBox="0 0 24 24" fill="none"><rect x="3.5" y="7" width="17" height="13" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M3.5 7 5.5 3.5h13L20.5 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 11h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Vault</a>
-    <a href="#/places" data-nav data-route="/places"><svg class="tab-ico" viewBox="0 0 24 24" fill="none"><path d="M12 21.5s7-6.4 7-12A7 7 0 0 0 5 9.5c0 5.6 7 12 7 12Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="9.4" r="2.3" stroke="currentColor" stroke-width="1.8"/></svg>Places</a>
-    <a href="#/settings" data-nav data-route="/settings"><svg class="tab-ico" viewBox="0 0 24 24" fill="none"><path d="M4 7h11M18 7h2M4 12h7M14 12h6M4 17h13M20 17h0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="17.5" cy="7" r="1.9" stroke="currentColor" stroke-width="1.8"/><circle cx="10.5" cy="12" r="1.9" stroke="currentColor" stroke-width="1.8"/><circle cx="16.5" cy="17" r="1.9" stroke="currentColor" stroke-width="1.8"/></svg>More</a>
+  <nav class="tabs" aria-label="Primary navigation">
+    <a href="#/" data-nav data-route="/"><svg class="tab-ico" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4.2" stroke="currentColor" stroke-width="1.6"/><path d="M12 2.5V5M12 19v2.5M4.5 12H2M22 12h-2.5M5.4 5.4l1.6 1.6M17 17l1.6 1.6M18.6 5.4 17 7M7 17l-1.6 1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>Today</span></a>
+    <a href="#/history" data-nav data-route="/history"><svg class="tab-ico" viewBox="0 0 24 24" fill="none"><rect x="3.5" y="7" width="17" height="13" rx="1.6" stroke="currentColor" stroke-width="1.6"/><path d="M3.5 7 5.5 3.5h13L20.5 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 11h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span>Vault</span></a>
+    <a href="#/places" data-nav data-route="/places"><svg class="tab-ico" viewBox="0 0 24 24" fill="none"><path d="M12 21.5s7-6.4 7-12A7 7 0 0 0 5 9.5c0 5.6 7 12 7 12Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="9.4" r="2.3" stroke="currentColor" stroke-width="1.6"/></svg><span>Places</span></a>
+    <a href="#/settings" data-nav data-route="/settings"><svg class="tab-ico" viewBox="0 0 24 24" fill="none"><path d="M4 7h11M18 7h2M4 12h7M14 12h6M4 17h13M20 17h0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="17.5" cy="7" r="1.9" stroke="currentColor" stroke-width="1.6"/><circle cx="10.5" cy="12" r="1.9" stroke="currentColor" stroke-width="1.6"/><circle cx="16.5" cy="17" r="1.9" stroke="currentColor" stroke-width="1.6"/></svg><span>More</span></a>
   </nav>
 </header>
 
-<!-- Main View Container -->
 <main id="app" class="app"></main>
 
-<!-- Mobile Bottom Navigation Bar -->
-<nav class="bottom-nav" aria-label="Primary Mobile">
-  <a href="#/" data-nav data-route="/"><svg class="tab-ico" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2"/><path d="M12 2.5V5M12 19v2.5M4.5 12H2M22 12h-2.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Today</a>
-  <a href="#/history" data-nav data-route="/history"><svg class="tab-ico" viewBox="0 0 24 24" fill="none"><rect x="3.5" y="7" width="17" height="13" rx="2" stroke="currentColor" stroke-width="2"/><path d="M3.5 7 5.5 3.5h13L20.5 7" stroke="currentColor" stroke-width="2"/></svg>Vault</a>
-  <a href="#/places" data-nav data-route="/places"><svg class="tab-ico" viewBox="0 0 24 24" fill="none"><path d="M12 21.5s7-6.4 7-12A7 7 0 0 0 5 9.5c0 5.6 7 12 7 12Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="9.4" r="2.2" stroke="currentColor" stroke-width="2"/></svg>Places</a>
-  <a href="#/settings" data-nav data-route="/settings"><svg class="tab-ico" viewBox="0 0 24 24" fill="none"><path d="M4 7h11M18 7h2M4 12h7M14 12h6M4 17h13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="17.5" cy="7" r="1.9" stroke="currentColor" stroke-width="2"/><circle cx="10.5" cy="12" r="1.9" stroke="currentColor" stroke-width="2"/></svg>More</a>
-</nav>
-
-<!-- Functional Quick Add FAB Button -->
-<button id="fab" class="fab" aria-label="Quick Add Item">
-  <svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
-</button>
-
-<!-- Bottom Sheet Root -->
 <div id="sheet-root"></div>
 
 <script>
-/* =========================================================================
-   Threshold — Complete Logic (Single File Application)
-   ========================================================================= */
-
-// Global string escaping helper - defined early to prevent reference errors
-function esc(str) {
-  return String(str ?? '').replace(/[&<>"']/g, (c) => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#39;'
-  }[c]));
-}
-
 (() => {
   'use strict';
 
-  const STORE_KEY = 'threshold:v1';
+  const STORE_KEY = 'threshold:v2';
 
   const ICONS = {
     home: 'M4 11 12 4l8 7M6 10v9h4v-5h4v5h4v-9',
@@ -621,10 +419,9 @@ function esc(str) {
   };
   const ICON_LABELS = { home: 'Home', office: 'Office', gym: 'Gym', school: 'School', other: 'Place' };
 
-  const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none"><path d="M4 12.5l5 5L20 6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-  const PLUS_SVG = '<svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
-
-  /* ---------------- State Management ---------------- */
+  const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none"><path d="M4 12.5l5 5L20 6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const PLUS_SVG = '<svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+  const BELL_SVG = '<svg viewBox="0 0 24 24" fill="none"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
   function defaultState() {
     return {
@@ -639,6 +436,7 @@ function esc(str) {
         permLocation: false,
         permReminders: false,
         permHaptics: true,
+        initialSetupDone: false,
         pingTime: '08:15',
         lastActiveDate: todayStr(),
         lastPingFiredDate: null,
@@ -646,9 +444,9 @@ function esc(str) {
     };
   }
 
-  let state = loadState();
+  let state = load();
 
-  function loadState() {
+  function load() {
     try {
       const raw = localStorage.getItem(STORE_KEY);
       if (!raw) return defaultState();
@@ -660,12 +458,12 @@ function esc(str) {
         settings: { ...base.settings, ...(parsed.settings || {}) },
       };
     } catch (e) {
-      console.warn('Threshold: State load fallback.', e);
+      console.warn('Threshold: failed to load state, starting fresh.', e);
       return defaultState();
     }
   }
 
-  function saveState() {
+  function save() {
     localStorage.setItem(STORE_KEY, JSON.stringify(state));
   }
 
@@ -685,41 +483,158 @@ function esc(str) {
     return state.places.find((p) => p.id === id) || null;
   }
 
-  /* ---------------- Daily Reset ---------------- */
+  let audioCtx = null;
+  let activeAlarmInterval = null;
+
+  function playAlarmSound() {
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, audioCtx.currentTime); // A5 note
+      osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.3);
+
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.35);
+    } catch (e) {
+      console.warn('Audio play error:', e);
+    }
+  }
+
+  function startAlarmRingtone() {
+    stopAlarmRingtone();
+    playAlarmSound();
+    activeAlarmInterval = setInterval(playAlarmSound, 800);
+  }
+
+  function stopAlarmRingtone() {
+    if (activeAlarmInterval) {
+      clearInterval(activeAlarmInterval);
+      activeAlarmInterval = null;
+    }
+  }
+
+  function showInitialPermissionPromptIfNeeded() {
+    if (state.settings.initialSetupDone) return;
+
+    const modalRoot = document.getElementById('perm-modal-root');
+    modalRoot.innerHTML = `
+      <div class="permission-modal-overlay">
+        <div class="permission-card">
+          <div class="permission-icon">${BELL_SVG}</div>
+          <h2 class="page-title" style="font-size: 26px; margin-bottom: 8px;">Welcome to Threshold</h2>
+          <p class="page-sub" style="font-size: 14px; margin-bottom: 20px;">
+            To work as your personal alarm and door reminder, Threshold needs permission to send phone notifications and detect your location when near bases.
+          </p>
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <button class="btn btn-accent btn-block" id="btn-grant-all">Grant Permissions & Start</button>
+            <button class="btn btn-ghost btn-block" id="btn-skip-perm">Skip for now</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('btn-grant-all').addEventListener('click', async () => {
+      state.settings.initialSetupDone = true;
+      save();
+      modalRoot.innerHTML = '';
+      await requestAllPermissions();
+    });
+
+    document.getElementById('btn-skip-perm').addEventListener('click', () => {
+      state.settings.initialSetupDone = true;
+      save();
+      modalRoot.innerHTML = '';
+      toast('You can turn on permissions anytime in settings.');
+    });
+  }
+
+  async function requestAllPermissions() {
+    // Audio Context activation gesture
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') await audioCtx.resume();
+    } catch (e) { /* ignore */ }
+
+    // Request Notification permission
+    if ('Notification' in window) {
+      try {
+        const result = await Notification.requestPermission();
+        state.settings.permReminders = (result === 'granted');
+      } catch (e) {
+        state.settings.permReminders = true;
+      }
+    } else {
+      state.settings.permReminders = true;
+    }
+
+    // Request Location permission
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        () => {
+          state.settings.permLocation = true;
+          save();
+          startGeoWatch();
+          toast('Permissions granted! Location and notifications active.');
+          render();
+        },
+        () => {
+          state.settings.permLocation = false;
+          save();
+          toast('Notification active. Location permission was denied.');
+          render();
+        },
+        { enableHighAccuracy: true, timeout: 8000 }
+      );
+    } else {
+      save();
+      toast('Notifications enabled.');
+      render();
+    }
+  }
 
   function ensureDailyReset() {
     const today = todayStr();
     if (state.settings.lastActiveDate === today) return;
     state.items = state.items
       .filter((i) => i.recurring)
-      .map((i) => ({ ...i, done: false }));
+      .map((i) => ({ ...i, done: false, lastTriggeredDate: null }));
     state.leavingPlaceId = null;
     state.settings.lastActiveDate = today;
     state.settings.lastPingFiredDate = null;
-    saveState();
+    save();
   }
 
-  /* ---------------- Items Logic ---------------- */
-
-  function addItem({ type, title, time, placeId, recurring }) {
+  function addItem({ type, title, time, isAlarm, placeId, recurring }) {
     if (!title || !title.trim()) return;
     state.items.push({
       id: uid(),
-      type: type || 'do',
+      type,
       title: title.trim(),
       time: time || null,
+      isAlarm: !!isAlarm,
+      lastTriggeredDate: null,
       placeId: placeId || null,
       recurring: !!recurring,
       done: false,
     });
-    saveState();
+    save();
   }
 
   function updateItem(id, patch) {
     const it = state.items.find((i) => i.id === id);
     if (!it) return;
     Object.assign(it, patch);
-    saveState();
+    save();
   }
 
   function completeItem(id) {
@@ -738,22 +653,20 @@ function esc(str) {
     } else {
       state.items.splice(idx, 1);
     }
-    saveState();
+    save();
     doHaptic();
   }
 
   function deleteItem(id) {
     state.items = state.items.filter((i) => i.id !== id);
-    saveState();
+    save();
   }
-
-  /* ---------------- Places Logic ---------------- */
 
   function addPlace({ name, icon, lat, lng }) {
     if (!name || !name.trim()) return null;
     const p = { id: uid(), name: name.trim(), icon: icon || 'other', lat: lat ?? null, lng: lng ?? null, isCurrent: state.places.length === 0 };
     state.places.push(p);
-    saveState();
+    save();
     return p;
   }
 
@@ -761,7 +674,7 @@ function esc(str) {
     const p = placeById(id);
     if (!p) return;
     Object.assign(p, patch);
-    saveState();
+    save();
   }
 
   function deletePlace(id) {
@@ -770,22 +683,20 @@ function esc(str) {
     state.items.forEach((i) => { if (i.placeId === id) i.placeId = null; });
     if (state.leavingPlaceId === id) state.leavingPlaceId = null;
     if (wasCurrent && state.places[0]) state.places[0].isCurrent = true;
-    saveState();
+    save();
   }
 
   function setCurrentPlace(id) {
     state.places.forEach((p) => { p.isCurrent = p.id === id; });
     if (state.leavingPlaceId && state.leavingPlaceId !== id) state.leavingPlaceId = null;
-    saveState();
+    save();
   }
-
-  /* ---------------- Leaving Mode ---------------- */
 
   function toggleLeaving() {
     const cp = currentPlace();
     if (!cp) return;
     state.leavingPlaceId = state.leavingPlaceId === cp.id ? null : cp.id;
-    saveState();
+    save();
     applyLeavingClass();
     render();
   }
@@ -794,11 +705,131 @@ function esc(str) {
     document.body.classList.toggle('leaving-mode', !!state.leavingPlaceId);
   }
 
-  /* ---------------- Feedback & Helpers ---------------- */
-
   function doHaptic() {
     if (state.settings.permHaptics && 'vibrate' in navigator) {
-      try { navigator.vibrate(35); } catch (e) { /* silent */ }
+      try { navigator.vibrate([40, 30, 40]); } catch (e) { /* ignore */ }
+    }
+  }
+
+  let geoWatchId = null;
+  let proximitySuggestion = null;
+
+  function haversineMeters(lat1, lon1, lat2, lon2) {
+    const R = 6371000;
+    const toRad = (d) => (d * Math.PI) / 180;
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+    return 2 * R * Math.asin(Math.sqrt(a));
+  }
+
+  function startGeoWatch() {
+    if (!state.settings.permLocation || !('geolocation' in navigator) || geoWatchId !== null) return;
+    geoWatchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        const cp = currentPlace();
+        let nearest = null;
+        let nearestDist = Infinity;
+        state.places.forEach((p) => {
+          if (p.lat == null || p.lng == null) return;
+          const d = haversineMeters(latitude, longitude, p.lat, p.lng);
+          if (d < nearestDist) { nearestDist = d; nearest = p; }
+        });
+        const prevSuggestion = proximitySuggestion;
+        if (nearest && nearestDist < 150 && (!cp || nearest.id !== cp.id)) {
+          proximitySuggestion = { placeId: nearest.id, meters: Math.round(nearestDist) };
+        } else {
+          proximitySuggestion = null;
+        }
+        if (JSON.stringify(prevSuggestion) !== JSON.stringify(proximitySuggestion) && currentRoute() === '/') render();
+      },
+      () => { /* silent */ },
+      { enableHighAccuracy: true, maximumAge: 20000, timeout: 15000 }
+    );
+  }
+
+  function stopGeoWatch() {
+    if (geoWatchId !== null && 'geolocation' in navigator) {
+      navigator.geolocation.clearWatch(geoWatchId);
+      geoWatchId = null;
+    }
+    proximitySuggestion = null;
+  }
+
+  function checkScheduledAlarms() {
+    const now = new Date();
+    const today = todayStr(now);
+    const hhmm = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+    // 1. Check item alarms
+    state.items.forEach((item) => {
+      if (!item.done && item.time === hhmm && item.lastTriggeredDate !== today) {
+        item.lastTriggeredDate = today;
+        save();
+        triggerAlarmModal(item);
+      }
+    });
+
+    // 2. Check morning leaving ping
+    if (state.settings.permReminders && hhmm === state.settings.pingTime && state.settings.lastPingFiredDate !== today) {
+      state.settings.lastPingFiredDate = today;
+      save();
+      fireSystemNotification('Threshold Morning Reminder', 'Check what you need to take before you leave!');
+    }
+  }
+
+  function triggerAlarmModal(item) {
+    startAlarmRingtone();
+    doHaptic();
+
+    fireSystemNotification(`Alarm: ${item.title}`, item.placeId ? `Reminder for ${placeById(item.placeId)?.name || 'door'}` : 'Timed reminder');
+
+    const alarmRoot = document.getElementById('alarm-root');
+    alarmRoot.innerHTML = `
+      <div class="alarm-overlay">
+        <div class="alarm-modal">
+          <div class="alarm-bell">${BELL_SVG}</div>
+          <div class="eyebrow" style="color: var(--amber)">ALARM REMINDER</div>
+          <h2 class="page-title" style="font-size: 28px; color: #fff; margin: 6px 0 12px;">${esc(item.title)}</h2>
+          <p class="page-sub" style="font-size: 14px; margin-bottom: 24px; color: rgba(255,255,255,0.7);">
+            ${item.placeId ? 'Door location: ' + esc(placeById(item.placeId)?.name || '') : 'Scheduled reminder time reached.'}
+          </p>
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <button class="btn btn-amber btn-block" id="btn-alarm-complete">Mark Completed</button>
+            <button class="btn btn-ghost btn-block" id="btn-alarm-dismiss" style="color: #fff; border-color: rgba(255,255,255,0.2)">Dismiss</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('btn-alarm-complete').addEventListener('click', () => {
+      stopAlarmRingtone();
+      alarmRoot.innerHTML = '';
+      completeItem(item.id);
+      render();
+    });
+
+    document.getElementById('btn-alarm-dismiss').addEventListener('click', () => {
+      stopAlarmRingtone();
+      alarmRoot.innerHTML = '';
+    });
+  }
+
+  function fireSystemNotification(title, body) {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      try {
+        new Notification(title, {
+          body,
+          icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23aab8d1"><circle cx="12" cy="12" r="10"/></svg>',
+          tag: 'threshold-alarm',
+          requireInteraction: true
+        });
+      } catch (e) {
+        toast(`${title}: ${body}`);
+      }
+    } else {
+      toast(`${title}: ${body}`);
     }
   }
 
@@ -808,8 +839,8 @@ function esc(str) {
     el.className = 'toast';
     el.textContent = msg;
     root.appendChild(el);
-    setTimeout(() => { el.style.opacity = '0'; el.style.transform = 'translateY(-6px)'; }, 2200);
-    setTimeout(() => el.remove(), 2500);
+    setTimeout(() => { el.style.opacity = '0'; el.style.transform = 'translateY(-6px)'; }, 2400);
+    setTimeout(() => el.remove(), 2700);
   }
 
   function formatClock(d) {
@@ -842,7 +873,7 @@ function esc(str) {
 
   function iconSvg(name, cls) {
     const d = ICONS[name] || ICONS.other;
-    return `<svg class="${cls || ''}" viewBox="0 0 24 24" fill="none"><path d="${d}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    return `<svg class="${cls || ''}" viewBox="0 0 24 24" fill="none"><path d="${d}" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
   }
 
   function vaultDayLabel(ts) {
@@ -854,11 +885,8 @@ function esc(str) {
     return d.toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' });
   }
 
-  /* ---------------- Router & Navigation ---------------- */
-
   function currentRoute() {
-    const h = location.hash.replace(/^#/, '');
-    return h || '/';
+    return location.hash.replace(/^#/, '') || '/';
   }
 
   function navigate(route) {
@@ -871,8 +899,6 @@ function esc(str) {
     const a = e.target.closest('[data-nav]');
     if (a) closeSheet();
   });
-
-  /* ---------------- Bottom Sheet Component ---------------- */
 
   function openSheet(html, onMount) {
     closeSheet();
@@ -896,78 +922,9 @@ function esc(str) {
     document.removeEventListener('keydown', escCloseHandler);
   }
 
-  /* ---------------- Quick Add FAB Handler ---------------- */
-
-  function openQuickAddSheet(defaultType = 'do') {
-    let activeType = defaultType;
-    openSheet(`
-      <h3 class="sheet-title">Quick Add Item</h3>
-      <div class="sheet-row">
-        <div class="field-label">Type</div>
-        <div class="seg" id="quick-add-type">
-          <button type="button" data-t="do" class="${activeType === 'do' ? 'active' : ''}">Do</button>
-          <button type="button" data-t="take" class="${activeType === 'take' ? 'active' : ''}">Take</button>
-          <button type="button" data-t="give" class="${activeType === 'give' ? 'active' : ''}">Give</button>
-        </div>
-      </div>
-      <div class="sheet-row">
-        <div class="field-label">Task or Item</div>
-        <input class="text-input" id="f-title" placeholder="e.g. Bring water bottle" autofocus />
-      </div>
-      <div class="sheet-row">
-        <div class="field-label">Time (optional)</div>
-        <input class="time-input" id="f-time" type="time" />
-      </div>
-      <div class="sheet-row" id="f-place-wrap" style="${activeType === 'do' ? 'display:none;' : ''}">
-        <div class="field-label">Associated Place</div>
-        <select class="select-input" id="f-place">
-          ${state.places.map((p) => `<option value="${p.id}" ${p.isCurrent ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}
-        </select>
-      </div>
-      <div class="sheet-row check-row">
-        <input type="checkbox" id="f-recurring" />
-        <label for="f-recurring">Daily routine (resets each morning)</label>
-      </div>
-      <div class="sheet-actions">
-        <button class="btn btn-ghost" data-x="cancel">Cancel</button>
-        <button class="btn btn-primary" data-x="save">Save Item</button>
-      </div>
-    `, (root) => {
-      const typeSeg = root.querySelector('#quick-add-type');
-      const placeWrap = root.querySelector('#f-place-wrap');
-      const titleInput = root.querySelector('#f-title');
-      
-      setTimeout(() => titleInput.focus(), 80);
-
-      typeSeg.querySelectorAll('button').forEach((b) => {
-        b.addEventListener('click', () => {
-          activeType = b.dataset.t;
-          typeSeg.querySelectorAll('button').forEach((x) => x.classList.toggle('active', x === b));
-          placeWrap.style.display = activeType === 'do' ? 'none' : 'block';
-        });
-      });
-
-      root.querySelector('[data-x="cancel"]').addEventListener('click', closeSheet);
-      root.querySelector('[data-x="save"]').addEventListener('click', () => {
-        const title = titleInput.value.trim();
-        if (!title) { toast('Please enter a title.'); return; }
-        const time = root.querySelector('#f-time').value || null;
-        const placeId = activeType !== 'do' ? root.querySelector('#f-place').value : null;
-        const recurring = root.querySelector('#f-recurring').checked;
-
-        addItem({ type: activeType, title, time, placeId, recurring });
-        closeSheet();
-        render();
-        toast(`Added to ${activeType.toUpperCase()}`);
-      });
-    });
-  }
-
-  /* ---------------- Main Render Logic ---------------- */
-
   function updateNavActive() {
     const route = currentRoute();
-    document.querySelectorAll('[data-route]').forEach((a) => {
+    document.querySelectorAll('.tabs a[data-route]').forEach((a) => {
       a.classList.toggle('active', a.dataset.route === route);
     });
   }
@@ -976,22 +933,15 @@ function esc(str) {
     ensureDailyReset();
     applyLeavingClass();
     updateNavActive();
-
     const route = currentRoute();
     const app = document.getElementById('app');
-    const fab = document.getElementById('fab');
 
-    // Wire global FAB click handler
-    fab.onclick = () => openQuickAddSheet('do');
-
-    if (route === '/') renderToday(app);
-    else if (route === '/history') renderVault(app);
-    else if (route === '/places') renderPlaces(app);
-    else if (route === '/settings') renderSettings(app);
-    else renderToday(app);
+    if (route === '/') { renderToday(app); }
+    else if (route === '/history') { renderVault(app); }
+    else if (route === '/places') { renderPlaces(app); }
+    else if (route === '/settings') { renderSettings(app); }
+    else { renderToday(app); }
   }
-
-  /* ---------------- Today View Renderer ---------------- */
 
   function renderToday(app) {
     const now = new Date();
@@ -1016,6 +966,18 @@ function esc(str) {
       locNote = pendingForCurrent === 0 ? 'Nothing waiting at this door.' : `${pendingForCurrent} item${pendingForCurrent === 1 ? '' : 's'} waiting for when you leave.`;
     }
 
+    let proximityHtml = '';
+    if (!leaving && proximitySuggestion) {
+      const p = placeById(proximitySuggestion.placeId);
+      if (p) {
+        proximityHtml = `
+          <div class="proximity-banner">
+            <span>You seem to be near <strong style="color:var(--ink)">${esc(p.name)}</strong> (~${proximitySuggestion.meters}m).</span>
+            <button class="btn btn-ghost btn-sm" data-action="set-current" data-id="${p.id}">Set as current</button>
+          </div>`;
+      }
+    }
+
     app.innerHTML = `
       <div class="today-head">
         <div>
@@ -1025,33 +987,35 @@ function esc(str) {
         <div class="today-clock">${formatClock(now)}</div>
       </div>
 
+      ${proximityHtml}
+
       <div class="loc-card">
         <div class="loc-left">
           <div class="loc-icon">${iconSvg(cp ? cp.icon : 'other')}</div>
           <div>
             <div class="loc-label">${leaving ? 'Leaving' : 'Now'}</div>
-            <div class="loc-name">${leaving ? `Leaving ${esc(leavingPlace?.name || '')}` : `At ${esc(cp ? cp.name : 'No location set')}`}</div>
+            <div class="loc-name">${leaving ? `Leaving ${esc(leavingPlace?.name || '')}` : `At ${esc(cp ? cp.name : 'nowhere set')}`}</div>
           </div>
         </div>
-        ${cp ? `<button class="btn ${leaving ? 'btn-ghost' : 'btn-primary'}" data-action="toggle-leaving">${leaving ? 'Arrived / Cancel' : `Leaving ${esc(cp.name)}`}</button>` : `<a href="#/places" data-nav class="btn btn-primary">Add a place</a>`}
+        ${cp ? `<button class="btn ${leaving ? 'btn-ghost' : 'btn-light'}" data-action="toggle-leaving">${leaving ? 'Arrived / Cancel' : `Leaving ${esc(cp.name)}`}</button>` : `<a href="#/places" data-nav class="btn btn-light">Add a place</a>`}
         <div class="loc-note">${esc(locNote)}</div>
       </div>
 
       <div class="columns">
-        <section class="col ${leaving ? 'col-hidden' : ''}">
+        <section class="col ${leaving ? 'col-hidden' : ''}" data-col="do">
           <div class="col-head"><span class="col-title">Do</span><span class="col-count">${doItems.length} open</span></div>
           <div class="col-list">${doItems.length ? doItems.map(itemRow).join('') : '<p class="col-empty">Nothing here.</p>'}</div>
-          <button class="add-link" data-action="add" data-type="do">${PLUS_SVG} Add do</button>
+          <button class="add-link col-add" data-action="add" data-type="do">${PLUS_SVG} Add do / alarm</button>
         </section>
-        <section class="col">
+        <section class="col" data-col="take">
           <div class="col-head"><span class="col-title">Take</span><span class="col-count">${takeItems.length} open</span></div>
           <div class="col-list">${takeItems.length ? takeItems.map(itemRow).join('') : '<p class="col-empty">Nothing here.</p>'}</div>
-          <button class="add-link" data-action="add" data-type="take">${PLUS_SVG} Add take</button>
+          <button class="add-link col-add" data-action="add" data-type="take">${PLUS_SVG} Add take</button>
         </section>
-        <section class="col">
+        <section class="col" data-col="give">
           <div class="col-head"><span class="col-title">Give</span><span class="col-count">${giveItems.length} open</span></div>
           <div class="col-list">${giveItems.length ? giveItems.map(itemRow).join('') : '<p class="col-empty">Nothing here.</p>'}</div>
-          <button class="add-link" data-action="add" data-type="give">${PLUS_SVG} Add give</button>
+          <button class="add-link col-add" data-action="add" data-type="give">${PLUS_SVG} Add give</button>
         </section>
       </div>
     `;
@@ -1063,9 +1027,9 @@ function esc(str) {
     const place = it.placeId ? placeById(it.placeId) : null;
     const bits = [];
     if (it.time) bits.push(`<span>${esc(formatTime12(it.time))}</span>`);
+    if (it.isAlarm) bits.push(`<span class="item-tag alarm-tag">🔔 Alarm</span>`);
     if (place) bits.push(`<span class="item-tag">${esc(place.name)}</span>`);
     if (it.recurring) bits.push(`<span class="item-tag">Routine</span>`);
-
     return `
       <div class="item" data-id="${it.id}">
         <button class="item-check" data-action="complete" data-id="${it.id}" aria-label="Mark done">${CHECK_SVG}</button>
@@ -1079,13 +1043,13 @@ function esc(str) {
 
   function wireToday(app) {
     app.querySelectorAll('[data-action="add"]').forEach((btn) => {
-      btn.addEventListener('click', () => openQuickAddSheet(btn.dataset.type));
+      btn.addEventListener('click', () => openAddItemSheet(btn.dataset.type));
     });
     app.querySelectorAll('[data-action="complete"]').forEach((btn) => {
       btn.addEventListener('click', () => {
         const row = btn.closest('.item');
         row.classList.add('completing');
-        setTimeout(() => { completeItem(btn.dataset.id); render(); }, 180);
+        setTimeout(() => completeItem(btn.dataset.id) || render(), 180);
       });
     });
     app.querySelectorAll('[data-action="item-menu"]').forEach((btn) => {
@@ -1093,6 +1057,8 @@ function esc(str) {
     });
     const leaveBtn = app.querySelector('[data-action="toggle-leaving"]');
     if (leaveBtn) leaveBtn.addEventListener('click', toggleLeaving);
+    const setCurBtn = app.querySelector('[data-action="set-current"]');
+    if (setCurBtn) setCurBtn.addEventListener('click', () => { setCurrentPlace(setCurBtn.dataset.id); proximitySuggestion = null; render(); toast('Current place updated.'); });
   }
 
   function openItemMenu(id) {
@@ -1101,16 +1067,69 @@ function esc(str) {
     openSheet(`
       <h3 class="sheet-title">${esc(it.title)}</h3>
       <div class="stack">
-        <button class="btn btn-ghost btn-block" data-x="delete">Delete item</button>
+        <button class="btn btn-ghost btn-block" data-x="edit">Edit</button>
+        <button class="btn btn-danger btn-block" data-x="delete">Delete</button>
       </div>
     `, (root) => {
-      root.querySelector('[data-x="delete"]').addEventListener('click', () => {
-        deleteItem(id); closeSheet(); render(); toast('Item deleted.');
-      });
+      root.querySelector('[data-x="edit"]').addEventListener('click', () => { closeSheet(); openAddItemSheet(it.type, it); });
+      root.querySelector('[data-x="delete"]').addEventListener('click', () => { deleteItem(id); closeSheet(); render(); toast('Deleted.'); });
     });
   }
 
-  /* ---------------- Vault Renderer ---------------- */
+  function openAddItemSheet(type, editing) {
+    const label = { do: 'do', take: 'take', give: 'give' }[type];
+    const placeOptions = state.places.map((p) => `<option value="${p.id}" ${editing?.placeId === p.id ? 'selected' : (!editing && p.isCurrent ? 'selected' : '')}>${esc(p.name)}</option>`).join('');
+    const needsPlace = type !== 'do';
+
+    openSheet(`
+      <h3 class="sheet-title">${editing ? 'Edit' : 'Add a'} ${label}</h3>
+      <div class="sheet-row">
+        <div class="field-label">What is it</div>
+        <input class="text-input" id="f-title" placeholder="${type === 'do' ? 'e.g. Call mechanic or Morning wake up' : type === 'take' ? 'e.g. Laptop charger' : 'e.g. Return Sarah’s book'}" value="${editing ? esc(editing.title) : ''}" />
+      </div>
+      <div class="sheet-row">
+        <div class="field-label">Time (optional)</div>
+        <input class="time-input" id="f-time" type="time" value="${editing?.time || ''}" />
+      </div>
+      <div class="sheet-row check-row">
+        <input type="checkbox" id="f-alarm" ${editing?.isAlarm ? 'checked' : ''} />
+        <label for="f-alarm" style="color: var(--amber); font-weight:600;">Trigger sound & phone notification alarm at time</label>
+      </div>
+      ${needsPlace ? `
+      <div class="sheet-row">
+        <div class="field-label">${type === 'take' ? 'Take from' : 'Give at'}</div>
+        <select class="select-input" id="f-place">${placeOptions}</select>
+      </div>` : ''}
+      <div class="sheet-row check-row">
+        <input type="checkbox" id="f-recurring" ${editing?.recurring ? 'checked' : ''} />
+        <label for="f-recurring">Recurring routine (resets each day)</label>
+      </div>
+      <div class="sheet-actions">
+        <button class="btn btn-ghost" data-x="cancel">Cancel</button>
+        <button class="btn btn-accent" data-x="save">${editing ? 'Save' : 'Add'}</button>
+      </div>
+    `, (root) => {
+      root.querySelector('#f-title').focus();
+      root.querySelector('[data-x="cancel"]').addEventListener('click', closeSheet);
+      root.querySelector('[data-x="save"]').addEventListener('click', () => {
+        const title = root.querySelector('#f-title').value.trim();
+        if (!title) { toast('Give it a name first.'); return; }
+        const time = root.querySelector('#f-time').value || null;
+        const isAlarm = root.querySelector('#f-alarm').checked;
+        const placeId = needsPlace ? root.querySelector('#f-place').value : (editing?.placeId || null);
+        const recurring = root.querySelector('#f-recurring').checked;
+
+        if (editing) {
+          updateItem(editing.id, { title, time, isAlarm, placeId, recurring });
+        } else {
+          addItem({ type, title, time, isAlarm, placeId, recurring });
+        }
+        closeSheet();
+        render();
+        toast(isAlarm ? 'Alarm saved.' : 'Saved.');
+      });
+    });
+  }
 
   let vaultFilter = 'all';
   let vaultQuery = '';
@@ -1122,21 +1141,20 @@ function esc(str) {
 
     app.innerHTML = `
       <div class="eyebrow">History Vault</div>
-      <h1 class="page-title">Completed Log</h1>
-      <p class="page-sub">An archive of completed actions and routines so you can verify what you did.</p>
+      <h1 class="page-title">Did I…</h1>
+      <p class="page-sub">A light archive of ticks — check whether you actually completed your alarms and door items.</p>
 
       <div class="search-box">
-        <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8"/><path d="m20 20-3.2-3.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-        <input id="vault-search" placeholder="Search entries or places" value="${esc(vaultQuery)}" />
+        <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.6"/><path d="m20 20-3.2-3.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <input id="vault-search" placeholder="Search completed alarms or items" value="${esc(vaultQuery)}" />
       </div>
       <div class="filter-row">
         ${['all', 'do', 'take', 'give'].map((f) => `<button class="chip ${vaultFilter === f ? 'active' : ''}" data-filter="${f}">${f === 'all' ? 'All' : f[0].toUpperCase() + f.slice(1)}</button>`).join('')}
       </div>
 
       ${entries.length ? renderVaultGroups(entries) : `
-        <div class="empty-panel">
-          <svg class="empty-icon" viewBox="0 0 24 24" fill="none"><rect x="3.5" y="7" width="17" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M3.5 7 5.5 3.5h13L20.5 7" stroke="currentColor" stroke-width="1.5"/></svg>
-          <p>${q || vaultFilter !== 'all' ? 'No matching entries found.' : 'Vault is empty. Completed tasks will land here.'}</p>
+        <div style="border: 1px dashed var(--border); border-radius: var(--radius-lg); padding: 50px 20px; text-align: center; color: var(--ink-faint);">
+          <p>Nothing in the vault yet. Completed items land here as you tick them off.</p>
         </div>`}
     `;
 
@@ -1171,30 +1189,28 @@ function esc(str) {
     return html;
   }
 
-  /* ---------------- Places Renderer ---------------- */
-
   function renderPlaces(app) {
     app.innerHTML = `
-      <div class="eyebrow">Location Thresholds</div>
+      <div class="eyebrow">Bases</div>
       <div class="row-between" style="align-items:flex-start; margin-bottom:8px;">
         <div>
           <h1 class="page-title" style="margin-bottom:6px;">Places</h1>
-          <p class="page-sub" style="margin-bottom:22px;">Organize actions around physical locations and bases.</p>
+          <p class="page-sub" style="margin-bottom:22px;">Save the doors you use. Threshold filters items for the place you’re leaving.</p>
         </div>
-        <button class="btn btn-primary" data-action="add-place">+ Add Place</button>
+        <button class="btn btn-accent" data-action="add-place">+ Add Place</button>
       </div>
       <div id="place-list">
-        ${state.places.map(placeRow).join('') || '<p class="col-empty">No places configured yet.</p>'}
+        ${state.places.map(placeRow).join('') || '<p class="col-empty">No places yet.</p>'}
       </div>
     `;
 
-    app.querySelector('[data-action="add-place"]').addEventListener('click', () => openAddPlaceSheet());
+    app.querySelector('[data-action="add-place"]').addEventListener('click', openAddPlaceSheet);
     app.querySelectorAll('[data-action="edit-place"]').forEach((b) => b.addEventListener('click', () => openAddPlaceSheet(placeById(b.dataset.id))));
-    app.querySelectorAll('[data-action="use-place"]').forEach((b) => b.addEventListener('click', () => { setCurrentPlace(b.dataset.id); render(); toast('Active place updated.'); }));
+    app.querySelectorAll('[data-action="use-place"]').forEach((b) => b.addEventListener('click', () => { setCurrentPlace(b.dataset.id); render(); toast('Current place updated.'); }));
   }
 
   function placeRow(p) {
-    const sub = [p.isCurrent ? 'Active Base' : null, p.lat != null ? 'Location Pinned' : 'No Pin'].filter(Boolean).join(' · ');
+    const sub = [p.isCurrent ? 'Current' : null, p.lat != null ? 'Pinned' : 'No pin'].filter(Boolean).join(' · ');
     return `
       <div class="place-row">
         <div class="place-left">
@@ -1205,7 +1221,7 @@ function esc(str) {
           </div>
         </div>
         <div class="place-actions">
-          ${!p.isCurrent ? `<button class="btn btn-ghost btn-sm" data-action="use-place" data-id="${p.id}">Set Active</button>` : ''}
+          ${!p.isCurrent ? `<button class="btn btn-ghost btn-sm" data-action="use-place" data-id="${p.id}">Set current</button>` : ''}
           <button class="btn btn-ghost btn-sm" data-action="edit-place" data-id="${p.id}">Edit</button>
         </div>
       </div>`;
@@ -1214,10 +1230,10 @@ function esc(str) {
   function openAddPlaceSheet(editing) {
     const isEdit = editing && editing.id;
     openSheet(`
-      <h3 class="sheet-title">${isEdit ? 'Edit Place' : 'Add Place'}</h3>
+      <h3 class="sheet-title">${isEdit ? 'Edit place' : 'Add a place'}</h3>
       <div class="sheet-row">
         <div class="field-label">Name</div>
-        <input class="text-input" id="p-name" placeholder="e.g. Office, Gym" value="${isEdit ? esc(editing.name) : ''}" />
+        <input class="text-input" id="p-name" placeholder="e.g. Office" value="${isEdit ? esc(editing.name) : ''}" />
       </div>
       <div class="sheet-row">
         <div class="field-label">Icon</div>
@@ -1225,42 +1241,57 @@ function esc(str) {
           ${Object.keys(ICONS).map((k) => `<button type="button" data-icon="${k}" class="${(isEdit ? editing.icon : 'home') === k ? 'active' : ''}">${ICON_LABELS[k]}</button>`).join('')}
         </div>
       </div>
+      <div class="sheet-row">
+        <button class="btn btn-ghost btn-block" id="p-pin" type="button">${isEdit && editing.lat != null ? 'Update pin to current location' : 'Pin current location'}</button>
+        <p class="field-hint" id="p-pin-status">${isEdit && editing.lat != null ? 'Pinned — Threshold detects proximity.' : 'Optional.'}</p>
+      </div>
       <div class="sheet-actions">
         <button class="btn btn-ghost" data-x="cancel">Cancel</button>
         ${isEdit ? '<button class="btn btn-danger" data-x="delete">Delete</button>' : ''}
-        <button class="btn btn-primary" data-x="save">Save</button>
+        <button class="btn btn-accent" data-x="save">${isEdit ? 'Save' : 'Add'}</button>
       </div>
     `, (root) => {
       let icon = isEdit ? editing.icon : 'home';
+      let pin = isEdit ? { lat: editing.lat, lng: editing.lng } : { lat: null, lng: null };
       root.querySelector('#p-name').focus();
-      
       root.querySelectorAll('#p-icon-seg button').forEach((b) => b.addEventListener('click', () => {
         icon = b.dataset.icon;
         root.querySelectorAll('#p-icon-seg button').forEach((x) => x.classList.toggle('active', x === b));
       }));
-
+      root.querySelector('#p-pin').addEventListener('click', () => {
+        if (!('geolocation' in navigator)) { toast('Location unavailable.'); return; }
+        const statusEl = root.querySelector('#p-pin-status');
+        statusEl.textContent = 'Locating…';
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            pin = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            statusEl.textContent = 'Location pinned!';
+            if (!state.settings.permLocation) { state.settings.permLocation = true; save(); startGeoWatch(); }
+            toast('Location pinned.');
+          },
+          () => { statusEl.textContent = 'Permission denied or unavailable.'; },
+          { enableHighAccuracy: true, timeout: 8000 }
+        );
+      });
       root.querySelector('[data-x="cancel"]').addEventListener('click', closeSheet);
       const delBtn = root.querySelector('[data-x="delete"]');
-      if (delBtn) delBtn.addEventListener('click', () => { deletePlace(editing.id); closeSheet(); render(); toast('Place removed.'); });
-      
+      if (delBtn) delBtn.addEventListener('click', () => { deletePlace(editing.id); closeSheet(); render(); toast('Place deleted.'); });
       root.querySelector('[data-x="save"]').addEventListener('click', () => {
         const name = root.querySelector('#p-name').value.trim();
-        if (!name) { toast('Please enter a place name.'); return; }
-        if (isEdit) updatePlace(editing.id, { name, icon });
-        else addPlace({ name, icon });
+        if (!name) { toast('Name it first.'); return; }
+        if (isEdit) updatePlace(editing.id, { name, icon, lat: pin.lat, lng: pin.lng });
+        else addPlace({ name, icon, lat: pin.lat, lng: pin.lng });
         closeSheet();
         render();
       });
     });
   }
 
-  /* ---------------- Settings Renderer ---------------- */
-
   function renderSettings(app) {
     const s = state.settings;
     app.innerHTML = `
       <div class="eyebrow">Preferences</div>
-      <h1 class="page-title">Settings</h1>
+      <h1 class="page-title">Settings & Permissions</h1>
 
       <div class="section-card">
         <h2 class="section-title">Profile</h2>
@@ -1269,57 +1300,89 @@ function esc(str) {
       </div>
 
       <div class="section-card">
-        <h2 class="section-title">Device Feedback</h2>
+        <h2 class="section-title">App Permissions</h2>
+        <p class="section-sub">Threshold requests location and notifications to send phone reminders and detect when you leave bases.</p>
+
         <div class="toggle-row">
-          <div class="toggle-copy"><strong>Haptics</strong><span>Vibrate slightly when ticking off items.</span></div>
-          <button class="switch ${s.permHaptics ? 'on' : ''}" id="s-hap" role="switch" aria-checked="${s.permHaptics}"></button>
+          <div class="toggle-copy"><strong>Location Access</strong><span>Detect when you are near pinned bases.</span></div>
+          <button class="switch ${s.permLocation ? 'on' : ''}" id="s-loc" role="switch"></button>
         </div>
+        <div class="toggle-row">
+          <div class="toggle-copy"><strong>Notifications & Reminders</strong><span>Timed alarm sound and system notifications.</span></div>
+          <button class="switch ${s.permReminders ? 'on' : ''}" id="s-rem" role="switch"></button>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-copy"><strong>Haptics / Vibration</strong><span>Vibrate phone when alarm triggers or items complete.</span></div>
+          <button class="switch ${s.permHaptics ? 'on' : ''}" id="s-hap" role="switch"></button>
+        </div>
+
+        <div class="field-label" style="margin-top:20px;">Morning Leaving Ping</div>
+        <input class="time-input" id="s-ping" type="time" value="${esc(s.pingTime)}" />
       </div>
 
       <div class="section-card">
-        <h2 class="section-title">Day Management</h2>
-        <p class="section-sub">Daily reset happens automatically at midnight.</p>
-        <div class="stack">
-          <button class="btn btn-ghost btn-block" id="s-sample-day">Load Sample Tasks</button>
+        <h2 class="section-title">Actions</h2>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <button class="btn btn-ghost btn-block" id="s-test-alarm">Test Alarm & Audio Chime</button>
+          <button class="btn btn-ghost btn-block" id="s-sample-day">Load Sample Day Data</button>
+          <button class="btn btn-danger btn-block" id="s-clear">Clear All App Data</button>
         </div>
       </div>
-
-      <div class="section-card">
-        <h2 class="section-title">Storage</h2>
-        <p class="section-sub">All data is stored locally in your web browser.</p>
-        <button class="btn btn-danger" id="s-clear">Clear All Data</button>
-      </div>
-
-      <p class="footer-tag">Threshold · Routine & Task Companion</p>
     `;
 
-    app.querySelector('#s-name').addEventListener('change', (e) => { state.settings.name = e.target.value.trim(); saveState(); });
+    app.querySelector('#s-name').addEventListener('change', (e) => { state.settings.name = e.target.value.trim(); save(); });
+    app.querySelector('#s-loc').addEventListener('click', async () => {
+      if (!state.settings.permLocation) {
+        if ('geolocation' in navigator) {
+          navigator.geolocation.getCurrentPosition(() => {
+            state.settings.permLocation = true; save(); startGeoWatch(); render(); toast('Location turned on.');
+          }, () => toast('Location permission denied in browser settings.'));
+        }
+      } else {
+        state.settings.permLocation = false; save(); stopGeoWatch(); render();
+      }
+    });
+
+    app.querySelector('#s-rem').addEventListener('click', async () => {
+      if (!state.settings.permReminders) {
+        if ('Notification' in window) {
+          const perm = await Notification.requestPermission();
+          state.settings.permReminders = (perm === 'granted');
+        } else {
+          state.settings.permReminders = true;
+        }
+        save(); render(); toast('Notifications updated.');
+      } else {
+        state.settings.permReminders = false; save(); render();
+      }
+    });
+
     app.querySelector('#s-hap').addEventListener('click', () => {
       state.settings.permHaptics = !state.settings.permHaptics;
-      saveState();
-      renderSettings(app);
+      save(); render();
       if (state.settings.permHaptics) doHaptic();
     });
-    app.querySelector('#s-sample-day').addEventListener('click', () => { loadSampleDay(); render(); toast('Sample tasks loaded.'); });
-    app.querySelector('#s-clear').addEventListener('click', () => {
-      openSheet(`
-        <h3 class="sheet-title">Clear all data?</h3>
-        <p class="page-sub">This removes all tasks, places, and history. This action cannot be undone.</p>
-        <div class="sheet-actions">
-          <button class="btn btn-ghost" data-x="cancel">Cancel</button>
-          <button class="btn btn-danger" data-x="confirm">Clear Everything</button>
-        </div>
-      `, (root) => {
-        root.querySelector('[data-x="cancel"]').addEventListener('click', closeSheet);
-        root.querySelector('[data-x="confirm"]').addEventListener('click', () => {
-          localStorage.removeItem(STORE_KEY);
-          state = defaultState();
-          closeSheet();
-          navigate('/');
-          render();
-          toast('Data cleared.');
-        });
+
+    app.querySelector('#s-ping').addEventListener('change', (e) => {
+      state.settings.pingTime = e.target.value || '08:15';
+      save(); toast('Ping time updated.');
+    });
+
+    app.querySelector('#s-test-alarm').addEventListener('click', () => {
+      triggerAlarmModal({
+        id: uid(),
+        title: 'Test Reminder Alarm',
+        type: 'do',
+        placeId: state.places[0]?.id
       });
+    });
+
+    app.querySelector('#s-sample-day').addEventListener('click', () => { loadSampleDay(); render(); toast('Sample day loaded.'); });
+    app.querySelector('#s-clear').addEventListener('click', () => {
+      localStorage.removeItem(STORE_KEY);
+      state = defaultState();
+      render();
+      toast('All data cleared.');
     });
   }
 
@@ -1327,36 +1390,43 @@ function esc(str) {
     if (!state.places.length) {
       state.places.push({ id: uid(), name: 'Home', icon: 'home', lat: null, lng: null, isCurrent: true });
     }
-    const home = state.places.find((p) => p.isCurrent) || state.places[0];
-    let office = state.places.find((p) => p.name.toLowerCase() === 'office');
-    if (!office) { office = { id: uid(), name: 'Office', icon: 'office', lat: null, lng: null, isCurrent: false }; state.places.push(office); }
+    const home = state.places[0];
+    const office = { id: uid(), name: 'Office', icon: 'office', lat: null, lng: null, isCurrent: false };
+    state.places.push(office);
 
-    addItem({ type: 'do', title: 'Review morning schedule', time: '09:00', recurring: true });
-    addItem({ type: 'take', title: 'Laptop charger', placeId: home.id, recurring: false });
-    addItem({ type: 'take', title: 'Water bottle & keys', placeId: home.id, recurring: true });
-    addItem({ type: 'give', title: 'Hand documents to team', placeId: office.id, recurring: false });
+    addItem({ type: 'do', title: 'Take morning vitamins', time: '08:30', isAlarm: true, recurring: true });
+    addItem({ type: 'do', title: 'Car service appointment', time: '10:00', isAlarm: true, recurring: false });
+    addItem({ type: 'take', title: 'Laptop charger & powerbank', placeId: home.id, recurring: false });
+    addItem({ type: 'give', title: 'Return library book', placeId: office.id, recurring: false });
   }
 
-  /* ---------------- Initialization ---------------- */
+  function esc(str) {
+    return String(str ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
 
   function boot() {
     ensureDailyReset();
-    saveState();
+    save();
     applyLeavingClass();
     render();
 
+    // Show initial permission request on first load
+    showInitialPermissionPromptIfNeeded();
+
+    if (state.settings.permLocation) startGeoWatch();
+
+    // High frequency interval (every second) to accurately trigger alarms at the exact minute
     setInterval(() => {
       ensureDailyReset();
-      if (currentRoute() === '/') render();
-    }, 30000);
+      checkScheduledAlarms();
+      if (currentRoute() === '/') {
+        const clockEl = document.querySelector('.today-clock');
+        if (clockEl) clockEl.textContent = formatClock(new Date());
+      }
+    }, 1000);
   }
 
-  // Ensure app initializes even if DOMContentLoaded has already fired on static hosting
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', boot);
-  } else {
-    boot();
-  }
+  document.addEventListener('DOMContentLoaded', boot);
 })();
 </script>
 </body>
