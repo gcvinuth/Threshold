@@ -2,62 +2,1432 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Threshold</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<title>Threshold - Routine & Task Manager</title>
 <meta name="description" content="A day-of task and routine manager organized around the doors you walk through." />
-<meta name="theme-color" content="#0b0e14" />
-<link rel="manifest" href="manifest.webmanifest" />
-<link rel="icon" href="icons/icon-192.png" />
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<meta name="theme-color" content="#1a1512" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="apple-mobile-web-app-title" content="Threshold" />
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root {
+  /* Earthy Color Palette: Brown, Sage Green, Warm Peach/White */
+  --bg: #1a1512;               /* Deep warm dark espresso brown */
+  --bg-elev: #241e1a;          /* Slightly elevated warm dark brown */
+  --card: #2c2420;             /* Card background warm brown */
+  --card-2: #352c27;           /* Sub-card background */
+  --border: rgba(232, 168, 140, 0.18); /* Soft peach border line */
+  --border-soft: rgba(232, 168, 140, 0.09);
+  
+  --ink: #fbf6f0;              /* Warm off-white / peach-white text */
+  --ink-dim: #d8c5b8;          /* Soft peach-beige secondary text */
+  --ink-faint: #9c897c;        /* Warm brownish muted text */
+  
+  --accent: #82a382;           /* Organic sage green */
+  --accent-ink: #0f1c10;       /* Dark green contrast text */
+  --accent-glow: rgba(130, 163, 130, 0.2);
+  
+  --green-bright: #689f71;     /* Primary action green */
+  --peach: #e2a082;            /* Warm earthy peach highlight */
+  --peach-ink: #2b140b;        /* Contrast on peach */
+  --peach-glow: rgba(226, 160, 130, 0.18);
+  
+  --brown-warm: #a86246;       /* Terracotta brown */
+  --danger: #e07a68;           /* Muted coral red */
+  
+  --radius-xl: 24px;
+  --radius-lg: 18px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
+  
+  --serif: 'Fraunces', Georgia, serif;
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --shadow-lg: 0 12px 36px rgba(0,0,0,0.45);
+  --shadow-sm: 0 4px 12px rgba(0,0,0,0.25);
+  
+  --dur: 220ms;
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  --sab: env(safe-area-inset-bottom, 0px);
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; margin: 0; padding: 0; background-color: var(--bg); color: var(--ink); font-family: var(--sans); }
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  background: radial-gradient(1000px 500px at 50% -10%, #2e231d 0%, var(--bg) 60%);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  transition: background var(--dur) var(--ease);
+  overflow-x: hidden;
+}
+
+body.leaving-mode {
+  background: radial-gradient(1000px 500px at 50% -10%, #3e2116 0%, #170f0b 60%);
+}
+
+a { color: inherit; text-decoration: none; }
+button { font-family: inherit; border: none; outline: none; background: none; }
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: rgba(26, 21, 18, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-mark {
+  width: 22px;
+  height: 22px;
+  color: var(--peach);
+}
+
+.brand-name {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+
+.today-mini-clock {
+  font-family: var(--serif);
+  font-size: 15px;
+  color: var(--ink-dim);
+  background: var(--card);
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border-soft);
+}
+
+.app {
+  flex: 1;
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 16px 16px calc(100px + var(--sab));
+}
+
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--peach);
+  font-weight: 700;
+  margin: 12px 0 4px;
+}
+
+.page-title {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: clamp(26px, 5vw, 34px);
+  margin: 0 0 6px;
+  color: var(--ink);
+}
+
+.page-sub {
+  color: var(--ink-dim);
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0 0 20px;
+}
+
+.today-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin: 8px 0 16px;
+}
+
+.today-date {
+  font-size: 11.5px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--peach);
+  font-weight: 700;
+}
+
+.today-greet {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: clamp(24px, 5vw, 32px);
+  margin-top: 2px;
+}
+
+.loc-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--dur) var(--ease);
+}
+
+body.leaving-mode .loc-card {
+  background: linear-gradient(135deg, var(--peach-glow), var(--card) 80%);
+  border-color: rgba(226, 160, 130, 0.4);
+}
+
+.loc-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.loc-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.loc-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(130, 163, 130, 0.15);
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+body.leaving-mode .loc-icon {
+  background: rgba(226, 160, 130, 0.2);
+  color: var(--peach);
+}
+
+.loc-icon svg { width: 22px; height: 22px; }
+
+.loc-label {
+  font-size: 11px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  font-weight: 700;
+}
+
+.loc-name {
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 600;
+  margin-top: 1px;
+}
+
+.loc-note {
+  color: var(--ink-dim);
+  font-size: 13.5px;
+  border-top: 1px dashed var(--border-soft);
+  padding-top: 12px;
+}
+
+.cat-tabs {
+  display: flex;
+  background: var(--bg-elev);
+  border: 1px solid var(--border-soft);
+  padding: 4px;
+  border-radius: var(--radius-md);
+  margin-bottom: 16px;
+  gap: 4px;
+}
+
+.cat-tab {
+  flex: 1;
+  padding: 10px 12px;
+  text-align: center;
+  border-radius: var(--radius-sm);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink-dim);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all var(--dur) var(--ease);
+}
+
+.cat-tab.active {
+  background: var(--accent);
+  color: var(--accent-ink);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+body.leaving-mode .cat-tab.active {
+  background: var(--peach);
+  color: var(--peach-ink);
+}
+
+.cat-badge {
+  background: rgba(0,0,0,0.15);
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+}
+
+.columns {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media (min-width: 680px) {
+  .cat-tabs { display: none; }
+  .columns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .col.mobile-hidden { display: flex !important; }
+}
+
+.col {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  min-height: 180px;
+}
+
+.col.mobile-hidden { display: none; }
+
+.col-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.col-title {
+  font-family: var(--serif);
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.col-count {
+  font-size: 12px;
+  color: var(--peach);
+  font-weight: 600;
+}
+
+.col-empty {
+  color: var(--ink-faint);
+  font-size: 13.5px;
+  padding: 18px 4px;
+  text-align: center;
+  font-style: italic;
+}
+
+.col-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+.item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: var(--card-2);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  transition: transform var(--dur) var(--ease), opacity var(--dur) var(--ease);
+}
+
+.item.completing {
+  transform: scale(0.95);
+  opacity: 0.1;
+}
+
+.item-check {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--ink-faint);
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-top: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: transparent;
+  transition: all var(--dur) var(--ease);
+}
+
+.item-check:active, .item-check:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+body.leaving-mode .item-check:active, body.leaving-mode .item-check:hover {
+  border-color: var(--peach);
+  color: var(--peach);
+}
+
+.item-check svg { width: 14px; height: 14px; }
+
+.item-body { flex: 1; min-width: 0; }
+.item-title { margin: 0; font-size: 14.5px; line-height: 1.4; color: var(--ink); font-weight: 500; }
+.item-meta { margin: 4px 0 0; font-size: 12px; color: var(--ink-faint); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+
+.item-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 600;
+  background: rgba(130, 163, 130, 0.15);
+  color: var(--accent);
+}
+
+.item-tag.tag-routine {
+  background: rgba(226, 160, 130, 0.15);
+  color: var(--peach);
+}
+
+.item-menu {
+  color: var(--ink-faint);
+  padding: 4px 8px;
+  font-size: 18px;
+  line-height: 1;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 12px 20px;
+  transition: transform var(--dur) var(--ease), background var(--dur) var(--ease), opacity var(--dur) var(--ease);
+}
+
+.btn:active { transform: scale(0.96); }
+.btn-accent { background: var(--accent); color: var(--accent-ink); }
+.btn-peach { background: var(--peach); color: var(--peach-ink); }
+.btn-ghost { background: transparent; color: var(--ink-dim); border: 1px solid var(--border); }
+.btn-ghost:hover { border-color: var(--accent); color: var(--ink); }
+.btn-danger { background: rgba(224, 122, 104, 0.12); color: var(--danger); border: 1px solid rgba(224, 122, 104, 0.3); }
+.btn-sm { padding: 8px 14px; font-size: 13px; }
+.btn-block { width: 100%; }
+
+.add-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 10px 4px 2px;
+}
+
+.add-link svg { width: 16px; height: 16px; }
+
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 12px 18px;
+  margin-bottom: 16px;
+}
+
+.search-box svg { width: 18px; height: 18px; color: var(--ink-faint); }
+.search-box input {
+  background: none; border: none; outline: none; color: var(--ink); font-size: 14.5px; width: 100%;
+}
+
+.filter-row { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 4px; }
+.chip {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--ink-dim);
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 13px;
+  cursor: pointer;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.chip.active { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+
+.vault-day { margin-bottom: 22px; }
+.vault-day-label { font-size: 11.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--peach); font-weight: 700; margin-bottom: 10px; }
+.vault-list { display: flex; flex-direction: column; gap: 8px; }
+
+.vault-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--card);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+}
+
+.vault-check {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.vault-check svg { width: 12px; height: 12px; }
+
+.place-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.place-left { display: flex; align-items: center; gap: 14px; }
+.place-icon {
+  width: 44px; height: 44px; border-radius: var(--radius-md);
+  background: rgba(130, 163, 130, 0.15); color: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.place-icon svg { width: 22px; height: 22px; }
+
+.section-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.field-label { font-size: 11.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--peach); font-weight: 700; margin-bottom: 8px; }
+.text-input, .time-input, .select-input {
+  width: 100%;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  color: var(--ink);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  font-size: 14.5px;
+  outline: none;
+}
+
+.text-input:focus, .time-input:focus, .select-input:focus { border-color: var(--accent); }
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.toggle-row:last-child { border-bottom: none; }
+
+.switch {
+  position: relative; width: 44px; height: 26px; border-radius: 999px;
+  background: rgba(255,255,255,0.12); cursor: pointer; transition: background var(--dur);
+}
+
+.switch::after {
+  content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%;
+  background: var(--ink); transition: transform var(--dur) var(--ease);
+}
+
+.switch.on { background: var(--accent); }
+.switch.on::after { transform: translateX(18px); background: var(--accent-ink); }
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(26, 21, 18, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--border-soft);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 8px 12px calc(8px + var(--sab));
+  z-index: 40;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: var(--ink-faint);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 12px;
+  transition: all var(--dur) var(--ease);
+}
+
+.nav-item svg { width: 22px; height: 22px; }
+.nav-item.active { color: var(--accent); }
+body.leaving-mode .nav-item.active { color: var(--peach); }
+
+.fab {
+  position: fixed;
+  right: 20px;
+  bottom: calc(72px + var(--sab));
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  cursor: pointer;
+  z-index: 45;
+  transition: transform var(--dur) var(--ease), background var(--dur);
+}
+
+.fab:active { transform: scale(0.92); }
+.fab svg { width: 26px; height: 26px; }
+body.leaving-mode .fab { background: var(--peach); color: var(--peach-ink); }
+
+.sheet-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(12, 9, 7, 0.75);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 100;
+  animation: fadeIn var(--dur) var(--ease);
+}
+
+.sheet {
+  width: 100%;
+  max-width: 520px;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: 24px 24px 0 0;
+  padding: 20px 20px calc(24px + var(--sab));
+  animation: slideUp var(--dur) var(--ease);
+  max-height: 88vh;
+  overflow-y: auto;
+}
+
+.sheet-handle {
+  width: 36px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--ink-faint);
+  margin: 0 auto 16px;
+  opacity: 0.5;
+}
+
+.sheet-title { font-family: var(--serif); font-size: 22px; font-weight: 600; margin: 0 0 16px; }
+.sheet-row { margin-bottom: 14px; }
+.sheet-actions { display: flex; gap: 10px; margin-top: 20px; }
+.sheet-actions .btn { flex: 1; }
+
+.seg {
+  display: flex;
+  gap: 4px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px;
+}
+
+.seg button {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--ink-dim);
+  padding: 9px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--dur);
+}
+
+.seg button.active { background: var(--accent); color: var(--accent-ink); }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+.toast-root {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 120;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  pointer-events: none;
+}
+
+.toast {
+  background: var(--ink);
+  color: var(--bg);
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-size: 13.5px;
+  font-weight: 600;
+  box-shadow: var(--shadow-lg);
+  animation: toastIn var(--dur) var(--ease);
+}
+
+@keyframes toastIn { from { transform: translateY(-12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+</style>
 </head>
 <body>
 
 <div id="toast-root" class="toast-root" aria-live="polite"></div>
 
+<!-- Topbar Header -->
 <header class="topbar">
   <a class="brand" href="#/" data-nav>
     <svg class="brand-mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M4 5 V19" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-      <path d="M20 5 V19" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-      <path d="M4 5 H20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-      <path d="M2.5 19 H21.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M4 5 V19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <path d="M20 5 V19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <path d="M4 5 H20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <path d="M2.5 19 H21.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
     </svg>
     <span class="brand-name">Threshold</span>
   </a>
-  <nav class="tabs" aria-label="Primary">
-    <a href="#/" data-nav data-route="/"><svg class="tab-ico" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4.2" stroke="currentColor" stroke-width="1.6"/><path d="M12 2.5V5M12 19v2.5M4.5 12H2M22 12h-2.5M5.4 5.4l1.6 1.6M17 17l1.6 1.6M18.6 5.4 17 7M7 17l-1.6 1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Today</a>
-    <a href="#/history" data-nav data-route="/history"><svg class="tab-ico" viewBox="0 0 24 24" fill="none"><rect x="3.5" y="7" width="17" height="13" rx="1.6" stroke="currentColor" stroke-width="1.6"/><path d="M3.5 7 5.5 3.5h13L20.5 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 11h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Vault</a>
-    <a href="#/places" data-nav data-route="/places"><svg class="tab-ico" viewBox="0 0 24 24" fill="none"><path d="M12 21.5s7-6.4 7-12A7 7 0 0 0 5 9.5c0 5.6 7 12 7 12Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="9.4" r="2.3" stroke="currentColor" stroke-width="1.6"/></svg>Places</a>
-    <a href="#/settings" data-nav data-route="/settings"><svg class="tab-ico" viewBox="0 0 24 24" fill="none"><path d="M4 7h11M18 7h2M4 12h7M14 12h6M4 17h13M20 17h0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="17.5" cy="7" r="1.9" stroke="currentColor" stroke-width="1.6"/><circle cx="10.5" cy="12" r="1.9" stroke="currentColor" stroke-width="1.6"/><circle cx="16.5" cy="17" r="1.9" stroke="currentColor" stroke-width="1.6"/></svg>More</a>
-  </nav>
+  <div id="mini-clock" class="today-mini-clock">--:--</div>
 </header>
 
+<!-- Main Scroll Area -->
 <main id="app" class="app"></main>
 
-<button id="fab" class="fab" aria-label="Quick add" hidden>
-  <svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+<!-- Functional Quick-Add FAB Button -->
+<button id="fab" class="fab" aria-label="Quick Add Item or Place">
+  <svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
 </button>
+
+<!-- Bottom Mobile Navigation Bar -->
+<nav class="bottom-nav" aria-label="Primary Mobile Navigation">
+  <a class="nav-item active" href="#/" data-nav data-route="/">
+    <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2"/><path d="M12 2.5V5M12 19v2.5M4.5 12H2M22 12h-2.5M5.4 5.4l1.6 1.6M17 17l1.6 1.6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    Today
+  </a>
+  <a class="nav-item" href="#/history" data-nav data-route="/history">
+    <svg viewBox="0 0 24 24" fill="none"><rect x="3.5" y="7" width="17" height="13" rx="2" stroke="currentColor" stroke-width="2"/><path d="M3.5 7 5.5 3.5h13L20.5 7" stroke="currentColor" stroke-width="2"/><path d="M10 11h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    Vault
+  </a>
+  <a class="nav-item" href="#/places" data-nav data-route="/places">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M12 21.5s7-6.4 7-12A7 7 0 0 0 5 9.5c0 5.6 7 12 7 12Z" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="9.5" r="2.5" stroke="currentColor" stroke-width="2"/></svg>
+    Places
+  </a>
+  <a class="nav-item" href="#/settings" data-nav data-route="/settings">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M4 7h11M18 7h2M4 12h7M14 12h6M4 17h13M20 17h0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="17.5" cy="7" r="2" stroke="currentColor" stroke-width="2"/><circle cx="10.5" cy="12" r="2" stroke="currentColor" stroke-width="2"/><circle cx="16.5" cy="17" r="2" stroke="currentColor" stroke-width="2"/></svg>
+    More
+  </a>
+</nav>
 
 <div id="sheet-root"></div>
 
-<template id="tpl-item">
-  <div class="item" data-id="">
-    <button class="item-check" aria-label="Mark done"></button>
-    <div class="item-body">
-      <p class="item-title"></p>
-      <p class="item-meta"></p>
-    </div>
-    <button class="item-menu" aria-label="More options">⋯</button>
-  </div>
-</template>
+<script>
+(() => {
+  'use strict';
 
-<script src="app.js"></script>
+  const STORE_KEY = 'threshold:v2:brown-theme';
+
+  const ICONS = {
+    home: 'M4 11 12 4l8 7M6 10v9h4v-5h4v5h4v-9',
+    office: 'M6 21V6l6-3 6 3v15M9 21v-4h6v4M9 11h.01M9 8h.01M15 11h.01M15 8h.01',
+    gym: 'M4 12h2M18 12h2M6 9v6M18 9v6M8 12h8M6 12v0',
+    school: 'M12 4 2 9l10 5 10-5-10-5ZM2 9v6M6 12.5V17c0 1.5 3 3 6 3s6-1.5 6-3v-4.5',
+    other: 'M12 21.5s7-6.4 7-12A7 7 0 0 0 5 9.5c0 5.6 7 12 7 12Z',
+  };
+  const ICON_LABELS = { home: 'Home', office: 'Office', gym: 'Gym', school: 'School', other: 'Place' };
+
+  const CHECK_SVG = '<svg viewBox="0 0 24 24" fill="none"><path d="M4 12.5l5 5L20 6" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const PLUS_SVG = '<svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
+
+  let activeTabFilter = 'do'; // Mobile Today column filter: 'do', 'take', 'give'
+
+  function esc(str) {
+    return String(str ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  function defaultState() {
+    return {
+      places: [
+        { id: uid(), name: 'Home', icon: 'home', lat: null, lng: null, isCurrent: true },
+        { id: uid(), name: 'Office', icon: 'office', lat: null, lng: null, isCurrent: false },
+      ],
+      items: [
+        { id: uid(), type: 'do', title: 'Pack laptop & charger', time: '08:30', placeId: null, recurring: true, done: false },
+        { id: uid(), type: 'take', title: 'Keys and wallet', time: null, placeId: null, recurring: true, done: false },
+        { id: uid(), type: 'give', title: 'Return library books', time: null, placeId: null, recurring: false, done: false }
+      ],
+      vault: [],
+      leavingPlaceId: null,
+      settings: {
+        name: '',
+        permLocation: false,
+        permReminders: false,
+        permHaptics: true,
+        pingTime: '08:15',
+        lastActiveDate: todayStr(),
+      },
+    };
+  }
+
+  let state = load();
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORE_KEY);
+      if (!raw) return defaultState();
+      const parsed = JSON.parse(raw);
+      const base = defaultState();
+      return {
+        ...base,
+        ...parsed,
+        settings: { ...base.settings, ...(parsed.settings || {}) },
+      };
+    } catch (e) {
+      return defaultState();
+    }
+  }
+
+  function save() {
+    localStorage.setItem(STORE_KEY, JSON.stringify(state));
+  }
+
+  function uid() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  }
+
+  function todayStr(d = new Date()) {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  function currentPlace() {
+    return state.places.find((p) => p.isCurrent) || state.places[0] || null;
+  }
+
+  function placeById(id) {
+    return state.places.find((p) => p.id === id) || null;
+  }
+
+  function ensureDailyReset() {
+    const today = todayStr();
+    if (state.settings.lastActiveDate === today) return;
+    state.items = state.items.filter((i) => i.recurring).map((i) => ({ ...i, done: false }));
+    state.leavingPlaceId = null;
+    state.settings.lastActiveDate = today;
+    save();
+  }
+
+  function addItem({ type, title, time, placeId, recurring }) {
+    if (!title || !title.trim()) return;
+    state.items.push({
+      id: uid(),
+      type,
+      title: title.trim(),
+      time: time || null,
+      placeId: placeId || null,
+      recurring: !!recurring,
+      done: false,
+    });
+    save();
+  }
+
+  function updateItem(id, patch) {
+    const it = state.items.find((i) => i.id === id);
+    if (!it) return;
+    Object.assign(it, patch);
+    save();
+  }
+
+  function completeItem(id) {
+    const idx = state.items.findIndex((i) => i.id === id);
+    if (idx === -1) return;
+    const it = state.items[idx];
+    state.vault.unshift({
+      id: uid(),
+      type: it.type,
+      title: it.title,
+      place: it.placeId ? (placeById(it.placeId)?.name || null) : null,
+      timestamp: Date.now(),
+    });
+    if (it.recurring) {
+      it.done = true;
+    } else {
+      state.items.splice(idx, 1);
+    }
+    save();
+    doHaptic();
+  }
+
+  function deleteItem(id) {
+    state.items = state.items.filter((i) => i.id !== id);
+    save();
+  }
+
+  function addPlace({ name, icon, lat, lng }) {
+    if (!name || !name.trim()) return null;
+    const p = { id: uid(), name: name.trim(), icon: icon || 'other', lat: lat ?? null, lng: lng ?? null, isCurrent: state.places.length === 0 };
+    state.places.push(p);
+    save();
+    return p;
+  }
+
+  function updatePlace(id, patch) {
+    const p = placeById(id);
+    if (!p) return;
+    Object.assign(p, patch);
+    save();
+  }
+
+  function deletePlace(id) {
+    const wasCurrent = placeById(id)?.isCurrent;
+    state.places = state.places.filter((p) => p.id !== id);
+    state.items.forEach((i) => { if (i.placeId === id) i.placeId = null; });
+    if (state.leavingPlaceId === id) state.leavingPlaceId = null;
+    if (wasCurrent && state.places[0]) state.places[0].isCurrent = true;
+    save();
+  }
+
+  function setCurrentPlace(id) {
+    state.places.forEach((p) => { p.isCurrent = p.id === id; });
+    if (state.leavingPlaceId && state.leavingPlaceId !== id) state.leavingPlaceId = null;
+    save();
+  }
+
+  function toggleLeaving() {
+    const cp = currentPlace();
+    if (!cp) return;
+    state.leavingPlaceId = state.leavingPlaceId === cp.id ? null : cp.id;
+    save();
+    applyLeavingClass();
+    render();
+  }
+
+  function applyLeavingClass() {
+    document.body.classList.toggle('leaving-mode', !!state.leavingPlaceId);
+  }
+
+  function doHaptic() {
+    if (state.settings.permHaptics && 'vibrate' in navigator) {
+      try { navigator.vibrate(30); } catch (e) { }
+    }
+  }
+
+  function toast(msg) {
+    const root = document.getElementById('toast-root');
+    const el = document.createElement('div');
+    el.className = 'toast';
+    el.textContent = msg;
+    root.appendChild(el);
+    setTimeout(() => { el.style.opacity = '0'; el.style.transform = 'translateY(-6px)'; }, 2200);
+    setTimeout(() => el.remove(), 2500);
+  }
+
+  function formatClock(d) {
+    let h = d.getHours();
+    const m = String(d.getMinutes()).padStart(2, '0');
+    const ap = h >= 12 ? 'PM' : 'AM';
+    h = h % 12; if (h === 0) h = 12;
+    return `${h}:${m} ${ap}`;
+  }
+
+  function greeting(d) {
+    const h = d.getHours();
+    if (h < 5) return 'Still up';
+    if (h < 12) return 'Good morning';
+    if (h < 17) return 'Good afternoon';
+    if (h < 21) return 'Good evening';
+    return 'Winding down';
+  }
+
+  function dateHeading(d) {
+    return d.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' }).toUpperCase();
+  }
+
+  function iconSvg(name) {
+    const d = ICONS[name] || ICONS.other;
+    return `<svg viewBox="0 0 24 24" fill="none"><path d="${d}" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  }
+
+  function currentRoute() {
+    const h = location.hash.replace(/^#/, '');
+    return h || '/';
+  }
+
+  function navigate(route) {
+    location.hash = route === '/' ? '/' : route;
+  }
+
+  window.addEventListener('hashchange', render);
+
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest('[data-nav]');
+    if (a) closeSheet();
+  });
+
+  function openSheet(html, onMount) {
+    closeSheet();
+    const root = document.getElementById('sheet-root');
+    const overlay = document.createElement('div');
+    overlay.className = 'sheet-overlay';
+    overlay.innerHTML = `<div class="sheet" role="dialog" aria-modal="true"><div class="sheet-handle"></div>${html}</div>`;
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeSheet(); });
+    root.appendChild(overlay);
+    document.addEventListener('keydown', escCloseHandler);
+    if (onMount) onMount(overlay);
+  }
+
+  function escCloseHandler(e) {
+    if (e.key === 'Escape') closeSheet();
+  }
+
+  function closeSheet() {
+    const root = document.getElementById('sheet-root');
+    root.innerHTML = '';
+    document.removeEventListener('keydown', escCloseHandler);
+  }
+
+  function setupFAB() {
+    const fab = document.getElementById('fab');
+    fab.onclick = () => {
+      const route = currentRoute();
+      if (route === '/places') {
+        openAddPlaceSheet();
+      } else {
+        openQuickAddSheet();
+      }
+    };
+  }
+
+  function openQuickAddSheet(defaultType = 'do') {
+    const placeOptions = state.places.map((p) => `<option value="${p.id}" ${p.isCurrent ? 'selected' : ''}>${esc(p.name)}</option>`).join('');
+    openSheet(`
+      <h3 class="sheet-title">Quick Add</h3>
+      <div class="sheet-row">
+        <div class="field-label">Category</div>
+        <div class="seg" id="q-type-seg">
+          <button type="button" data-type="do" class="${defaultType === 'do' ? 'active' : ''}">Do</button>
+          <button type="button" data-type="take" class="${defaultType === 'take' ? 'active' : ''}">Take</button>
+          <button type="button" data-type="give" class="${defaultType === 'give' ? 'active' : ''}">Give</button>
+        </div>
+      </div>
+      <div class="sheet-row">
+        <div class="field-label">Title</div>
+        <input class="text-input" id="f-title" placeholder="e.g. Grab keys / Call Alex / Return item" />
+      </div>
+      <div class="sheet-row">
+        <div class="field-label">Time (Optional)</div>
+        <input class="time-input" id="f-time" type="time" />
+      </div>
+      <div class="sheet-row" id="f-place-container">
+        <div class="field-label">Associated Place</div>
+        <select class="select-input" id="f-place">${placeOptions}</select>
+      </div>
+      <div class="sheet-row" style="display:flex; align-items:center; gap:10px; margin-top:14px;">
+        <input type="checkbox" id="f-recurring" style="width:18px; height:18px; accent-color:var(--accent);" />
+        <label for="f-recurring" style="font-size:13.5px; color:var(--ink-dim);">Daily routine (resets each morning)</label>
+      </div>
+      <div class="sheet-actions">
+        <button class="btn btn-ghost" data-x="cancel">Cancel</button>
+        <button class="btn btn-accent" data-x="save">Save Task</button>
+      </div>
+    `, (root) => {
+      let selectedType = defaultType;
+      root.querySelector('#f-title').focus();
+
+      root.querySelectorAll('#q-type-seg button').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          selectedType = btn.dataset.type;
+          root.querySelectorAll('#q-type-seg button').forEach((b) => b.classList.toggle('active', b === btn));
+        });
+      });
+
+      root.querySelector('[data-x="cancel"]').addEventListener('click', closeSheet);
+      root.querySelector('[data-x="save"]').addEventListener('click', () => {
+        const title = root.querySelector('#f-title').value.trim();
+        if (!title) { toast('Please enter a title'); return; }
+        const time = root.querySelector('#f-time').value || null;
+        const placeId = root.querySelector('#f-place').value || null;
+        const recurring = root.querySelector('#f-recurring').checked;
+
+        addItem({ type: selectedType, title, time, placeId, recurring });
+        closeSheet();
+        render();
+        toast(`Added to ${selectedType.toUpperCase()}`);
+      });
+    });
+  }
+
+  function updateNavActive() {
+    const route = currentRoute();
+    document.querySelectorAll('.bottom-nav .nav-item').forEach((a) => {
+      a.classList.toggle('active', a.dataset.route === route);
+    });
+  }
+
+  function render() {
+    ensureDailyReset();
+    applyLeavingClass();
+    updateNavActive();
+
+    const now = new Date();
+    document.getElementById('mini-clock').textContent = formatClock(now);
+
+    const route = currentRoute();
+    const app = document.getElementById('app');
+
+    if (route === '/') renderToday(app);
+    else if (route === '/history') renderVault(app);
+    else if (route === '/places') renderPlaces(app);
+    else if (route === '/settings') renderSettings(app);
+    else renderToday(app);
+  }
+
+  function renderToday(app) {
+    const now = new Date();
+    const cp = currentPlace();
+    const leaving = !!state.leavingPlaceId;
+    const leavingPlace = leaving ? placeById(state.leavingPlaceId) : null;
+
+    const openItems = state.items.filter((i) => !i.done);
+    const doItems = openItems.filter((i) => i.type === 'do');
+    const takeItems = openItems.filter((i) => i.type === 'take' && (!leaving || i.placeId === state.leavingPlaceId));
+    const giveItems = openItems.filter((i) => i.type === 'give' && (!leaving || i.placeId === state.leavingPlaceId));
+
+    const pendingCount = cp ? openItems.filter((i) => (i.type === 'take' || i.type === 'give') && i.placeId === cp.id).length : 0;
+    const locNote = leaving
+      ? `${takeItems.length + giveItems.length} item(s) to resolve before leaving.`
+      : pendingCount === 0 ? 'Doorway is clear.' : `${pendingCount} item(s) waiting for this door.`;
+
+    app.innerHTML = `
+      <div class="today-head">
+        <div>
+          <div class="today-date">${esc(dateHeading(now))}</div>
+          <div class="today-greet">${state.settings.name ? `${greeting(now)}, ${esc(state.settings.name)}` : greeting(now)}</div>
+        </div>
+      </div>
+
+      <div class="loc-card">
+        <div class="loc-top">
+          <div class="loc-left">
+            <div class="loc-icon">${iconSvg(cp ? cp.icon : 'other')}</div>
+            <div>
+              <div class="loc-label">${leaving ? 'Leaving' : 'Current Base'}</div>
+              <div class="loc-name">${leaving ? `Leaving ${esc(leavingPlace?.name || '')}` : `At ${esc(cp ? cp.name : 'Unknown')}`}</div>
+            </div>
+          </div>
+          ${cp ? `<button class="btn btn-sm ${leaving ? 'btn-ghost' : 'btn-peach'}" data-action="toggle-leaving">${leaving ? 'Arrived' : 'Leaving'}</button>` : ''}
+        </div>
+        <div class="loc-note">${esc(locNote)}</div>
+      </div>
+
+      <!-- Mobile Tab Switcher -->
+      <div class="cat-tabs">
+        <div class="cat-tab ${activeTabFilter === 'do' ? 'active' : ''}" data-cat="do">
+          Do <span class="cat-badge">${doItems.length}</span>
+        </div>
+        <div class="cat-tab ${activeTabFilter === 'take' ? 'active' : ''}" data-cat="take">
+          Take <span class="cat-badge">${takeItems.length}</span>
+        </div>
+        <div class="cat-tab ${activeTabFilter === 'give' ? 'active' : ''}" data-cat="give">
+          Give <span class="cat-badge">${giveItems.length}</span>
+        </div>
+      </div>
+
+      <div class="columns">
+        <section class="col ${activeTabFilter !== 'do' ? 'mobile-hidden' : ''}">
+          <div class="col-head"><span class="col-title">Do</span><span class="col-count">${doItems.length} open</span></div>
+          <div class="col-list">${doItems.length ? doItems.map(itemRow).join('') : '<p class="col-empty">Nothing scheduled to do.</p>'}</div>
+          <button class="add-link" data-action="add" data-type="do">${PLUS_SVG} Add task</button>
+        </section>
+
+        <section class="col ${activeTabFilter !== 'take' ? 'mobile-hidden' : ''}">
+          <div class="col-head"><span class="col-title">Take</span><span class="col-count">${takeItems.length} open</span></div>
+          <div class="col-list">${takeItems.length ? takeItems.map(itemRow).join('') : '<p class="col-empty">Nothing to take.</p>'}</div>
+          <button class="add-link" data-action="add" data-type="take">${PLUS_SVG} Add item</button>
+        </section>
+
+        <section class="col ${activeTabFilter !== 'give' ? 'mobile-hidden' : ''}">
+          <div class="col-head"><span class="col-title">Give</span><span class="col-count">${giveItems.length} open</span></div>
+          <div class="col-list">${giveItems.length ? giveItems.map(itemRow).join('') : '<p class="col-empty">Nothing to give.</p>'}</div>
+          <button class="add-link" data-action="add" data-type="give">${PLUS_SVG} Add handoff</button>
+        </section>
+      </div>
+    `;
+
+    wireToday(app);
+  }
+
+  function itemRow(it) {
+    const place = it.placeId ? placeById(it.placeId) : null;
+    const bits = [];
+    if (it.time) bits.push(`<span>${esc(it.time)}</span>`);
+    if (place) bits.push(`<span class="item-tag">${esc(place.name)}</span>`);
+    if (it.recurring) bits.push(`<span class="item-tag tag-routine">Routine</span>`);
+
+    return `
+      <div class="item" data-id="${it.id}">
+        <button class="item-check" data-action="complete" data-id="${it.id}" aria-label="Mark done">${CHECK_SVG}</button>
+        <div class="item-body">
+          <p class="item-title">${esc(it.title)}</p>
+          <p class="item-meta">${bits.join('')}</p>
+        </div>
+        <button class="item-menu" data-action="item-menu" data-id="${it.id}">⋯</button>
+      </div>`;
+  }
+
+  function wireToday(app) {
+    app.querySelectorAll('.cat-tab').forEach((tab) => {
+      tab.addEventListener('click', () => {
+        activeTabFilter = tab.dataset.cat;
+        renderToday(app);
+      });
+    });
+
+    app.querySelectorAll('[data-action="add"]').forEach((btn) => {
+      btn.addEventListener('click', () => openQuickAddSheet(btn.dataset.type));
+    });
+
+    app.querySelectorAll('[data-action="complete"]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const row = btn.closest('.item');
+        row.classList.add('completing');
+        setTimeout(() => { completeItem(btn.dataset.id); render(); }, 180);
+      });
+    });
+
+    app.querySelectorAll('[data-action="item-menu"]').forEach((btn) => {
+      btn.addEventListener('click', () => openItemMenu(btn.dataset.id));
+    });
+
+    const leaveBtn = app.querySelector('[data-action="toggle-leaving"]');
+    if (leaveBtn) leaveBtn.addEventListener('click', toggleLeaving);
+  }
+
+  function openItemMenu(id) {
+    const it = state.items.find((i) => i.id === id);
+    if (!it) return;
+    openSheet(`
+      <h3 class="sheet-title">${esc(it.title)}</h3>
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <button class="btn btn-danger btn-block" data-x="delete">Delete Task</button>
+      </div>
+    `, (root) => {
+      root.querySelector('[data-x="delete"]').addEventListener('click', () => { deleteItem(id); closeSheet(); render(); toast('Deleted'); });
+    });
+  }
+
+  let vaultFilter = 'all';
+  let vaultQuery = '';
+
+  function renderVault(app) {
+    const q = vaultQuery.trim().toLowerCase();
+    let entries = state.vault.filter((v) => vaultFilter === 'all' || v.type === vaultFilter);
+    if (q) entries = entries.filter((v) => v.title.toLowerCase().includes(q) || (v.place || '').toLowerCase().includes(q));
+
+    app.innerHTML = `
+      <div class="eyebrow">Archive</div>
+      <h1 class="page-title">History Vault</h1>
+      <p class="page-sub">A light log of completed actions and routines.</p>
+
+      <div class="search-box">
+        <svg viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="m20 20-3.2-3.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <input id="vault-search" placeholder="Search title or place..." value="${esc(vaultQuery)}" />
+      </div>
+
+      <div class="filter-row">
+        ${['all', 'do', 'take', 'give'].map((f) => `<button class="chip ${vaultFilter === f ? 'active' : ''}" data-filter="${f}">${f[0].toUpperCase() + f.slice(1)}</button>`).join('')}
+      </div>
+
+      ${entries.length ? entries.map((v) => `
+        <div class="vault-row">
+          <div class="vault-check">${CHECK_SVG}</div>
+          <div>
+            <div style="font-size:14.5px; font-weight:500;">${esc(v.title)}</div>
+            <div style="font-size:11.5px; color:var(--ink-faint); margin-top:2px;">${v.type.toUpperCase()}${v.place ? ' · ' + esc(v.place) : ''}</div>
+          </div>
+        </div>
+      `).join('') : '<p style="text-align:center; color:var(--ink-faint); padding:30px;">Vault is currently empty.</p>'}
+    `;
+
+    app.querySelector('#vault-search').addEventListener('input', (e) => { vaultQuery = e.target.value; renderVault(app); });
+    app.querySelectorAll('[data-filter]').forEach((b) => b.addEventListener('click', () => { vaultFilter = b.dataset.filter; renderVault(app); }));
+  }
+
+  function renderPlaces(app) {
+    app.innerHTML = `
+      <div class="eyebrow">Locations</div>
+      <h1 class="page-title">Saved Places</h1>
+      <p class="page-sub">Configure the doors and threshold places you visit regularly.</p>
+
+      <div>
+        ${state.places.map((p) => `
+          <div class="place-card">
+            <div class="place-left">
+              <div class="place-icon">${iconSvg(p.icon)}</div>
+              <div>
+                <div style="font-family:var(--serif); font-size:18px; font-weight:600;">${esc(p.name)}</div>
+                <div style="font-size:12px; color:var(--ink-faint);">${p.isCurrent ? 'Current Location' : 'Saved Base'}</div>
+              </div>
+            </div>
+            ${!p.isCurrent ? `<button class="btn btn-sm btn-ghost" data-action="use-place" data-id="${p.id}">Set Current</button>` : '<span class="item-tag">Active</span>'}
+          </div>
+        `).join('')}
+      </div>
+    `;
+
+    app.querySelectorAll('[data-action="use-place"]').forEach((b) => {
+      b.addEventListener('click', () => { setCurrentPlace(b.dataset.id); render(); toast('Place set to active.'); });
+    });
+  }
+
+  function openAddPlaceSheet() {
+    openSheet(`
+      <h3 class="sheet-title">Add New Place</h3>
+      <div class="sheet-row">
+        <div class="field-label">Place Name</div>
+        <input class="text-input" id="p-name" placeholder="e.g. Office, Gym, Studio" />
+      </div>
+      <div class="sheet-row">
+        <div class="field-label">Icon</div>
+        <div class="seg" id="p-icon-seg">
+          ${Object.keys(ICONS).map((k) => `<button type="button" data-icon="${k}" class="${k === 'home' ? 'active' : ''}">${ICON_LABELS[k]}</button>`).join('')}
+        </div>
+      </div>
+      <div class="sheet-actions">
+        <button class="btn btn-ghost" data-x="cancel">Cancel</button>
+        <button class="btn btn-accent" data-x="save">Save Place</button>
+      </div>
+    `, (root) => {
+      let icon = 'home';
+      root.querySelectorAll('#p-icon-seg button').forEach((b) => b.addEventListener('click', () => {
+        icon = b.dataset.icon;
+        root.querySelectorAll('#p-icon-seg button').forEach((x) => x.classList.toggle('active', x === b));
+      }));
+
+      root.querySelector('[data-x="cancel"]').addEventListener('click', closeSheet);
+      root.querySelector('[data-x="save"]').addEventListener('click', () => {
+        const name = root.querySelector('#p-name').value.trim();
+        if (!name) { toast('Please name the place'); return; }
+        addPlace({ name, icon });
+        closeSheet();
+        render();
+        toast('New place created');
+      });
+    });
+  }
+
+  function renderSettings(app) {
+    const s = state.settings;
+    app.innerHTML = `
+      <div class="eyebrow">Options</div>
+      <h1 class="page-title">Settings</h1>
+
+      <div class="section-card">
+        <div class="field-label">Your Name</div>
+        <input class="text-input" id="s-name" placeholder="Display name" value="${esc(s.name)}" />
+      </div>
+
+      <div class="section-card">
+        <div class="field-label" style="margin-bottom:12px;">App Options</div>
+        <div class="toggle-row">
+          <div><strong style="font-size:14px;">Haptic Feedback</strong><br><span style="font-size:12px; color:var(--ink-faint);">Vibrate on task completion</span></div>
+          <button class="switch ${s.permHaptics ? 'on' : ''}" id="s-hap"></button>
+        </div>
+      </div>
+
+      <div class="section-card">
+        <button class="btn btn-danger btn-block" id="s-clear">Clear All Data</button>
+      </div>
+    `;
+
+    app.querySelector('#s-name').addEventListener('change', (e) => { state.settings.name = e.target.value.trim(); save(); });
+    app.querySelector('#s-hap').addEventListener('click', () => { state.settings.permHaptics = !state.settings.permHaptics; save(); renderSettings(app); });
+    app.querySelector('#s-clear').addEventListener('click', () => {
+      localStorage.removeItem(STORE_KEY);
+      state = defaultState();
+      navigate('/');
+      render();
+      toast('App reset.');
+    });
+  }
+
+  function boot() {
+    ensureDailyReset();
+    save();
+    applyLeavingClass();
+    setupFAB();
+    render();
+
+    setInterval(() => {
+      const now = new Date();
+      const el = document.getElementById('mini-clock');
+      if (el) el.textContent = formatClock(now);
+    }, 10000);
+  }
+
+  document.addEventListener('DOMContentLoaded', boot);
+})();
+</script>
 </body>
 </html>
