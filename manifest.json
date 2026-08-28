@@ -1,5 +1,5 @@
 {
-"name": "Threshold — Door & Alarm Reminder",
+"name": "Threshold",
 "short_name": "Threshold",
 "description": "A location-aware task, door reminder, and functional alarm manager with custom audio sound alarms.",
 "start_url": "./index.html",
