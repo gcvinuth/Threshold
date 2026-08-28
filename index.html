@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Threshold</title>
+<meta name="description" content="A day-of task and routine manager organized around the doors you walk through." />
+<meta name="theme-color" content="#0b0e14" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" href="icons/icon-192.png" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Threshold" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div id="toast-root" class="toast-root" aria-live="polite"></div>
+
+<header class="topbar">
+  <a class="brand" href="#/" data-nav>
+    <svg class="brand-mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M4 5 V19" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M20 5 V19" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M4 5 H20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      <path d="M2.5 19 H21.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    </svg>
+    <span class="brand-name">Threshold</span>
+  </a>
+  <nav class="tabs" aria-label="Primary">
+    <a href="#/" data-nav data-route="/"><svg class="tab-ico" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="4.2" stroke="currentColor" stroke-width="1.6"/><path d="M12 2.5V5M12 19v2.5M4.5 12H2M22 12h-2.5M5.4 5.4l1.6 1.6M17 17l1.6 1.6M18.6 5.4 17 7M7 17l-1.6 1.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Today</a>
+    <a href="#/history" data-nav data-route="/history"><svg class="tab-ico" viewBox="0 0 24 24" fill="none"><rect x="3.5" y="7" width="17" height="13" rx="1.6" stroke="currentColor" stroke-width="1.6"/><path d="M3.5 7 5.5 3.5h13L20.5 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 11h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>Vault</a>
+    <a href="#/places" data-nav data-route="/places"><svg class="tab-ico" viewBox="0 0 24 24" fill="none"><path d="M12 21.5s7-6.4 7-12A7 7 0 0 0 5 9.5c0 5.6 7 12 7 12Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="9.4" r="2.3" stroke="currentColor" stroke-width="1.6"/></svg>Places</a>
+    <a href="#/settings" data-nav data-route="/settings"><svg class="tab-ico" viewBox="0 0 24 24" fill="none"><path d="M4 7h11M18 7h2M4 12h7M14 12h6M4 17h13M20 17h0" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="17.5" cy="7" r="1.9" stroke="currentColor" stroke-width="1.6"/><circle cx="10.5" cy="12" r="1.9" stroke="currentColor" stroke-width="1.6"/><circle cx="16.5" cy="17" r="1.9" stroke="currentColor" stroke-width="1.6"/></svg>More</a>
+  </nav>
+</header>
+
+<main id="app" class="app"></main>
+
+<button id="fab" class="fab" aria-label="Quick add" hidden>
+  <svg viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+</button>
+
+<div id="sheet-root"></div>
+
+<template id="tpl-item">
+  <div class="item" data-id="">
+    <button class="item-check" aria-label="Mark done"></button>
+    <div class="item-body">
+      <p class="item-title"></p>
+      <p class="item-meta"></p>
+    </div>
+    <button class="item-menu" aria-label="More options">⋯</button>
+  </div>
+</template>
+
+<script src="app.js"></script>
+</body>
+</html>
